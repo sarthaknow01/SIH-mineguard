@@ -4,23 +4,13 @@ import { DEMO_ACCOUNTS } from '../utils/seedData';
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('mineguard_auth_user');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        const validUser = DEMO_ACCOUNTS.find(
-          acc => acc.userId === parsed?.userId || acc.badge === parsed?.badge || acc.email === parsed?.email
-        );
-        if (validUser) return validUser;
-      } catch (e) {
-        /* invalid JSON */
-      }
-      localStorage.removeItem('mineguard_auth_user');
-    }
-    // CRITICAL: Fresh launch MUST default to null (LOGIN FIRST)
-    return null;
-  });
+  // CRITICAL REQUIREMENT: Application start / load MUST ALWAYS default to null (LOGIN PAGE FIRST)
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    // Clear any previous persisted session on fresh launch to guarantee login screen first
+    localStorage.removeItem('mineguard_auth_user');
+  }, []);
 
   useEffect(() => {
     if (currentUser) {

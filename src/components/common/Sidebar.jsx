@@ -15,7 +15,7 @@ import {
   Scale
 } from 'lucide-react';
 
-export default function Sidebar({ currentTab, onSelectTab }) {
+export default function Sidebar({ currentTab, onSelectTab, isOpen, onClose }) {
   const { currentUser } = useAuth();
   const role = currentUser?.role || 'INSPECTOR';
 
@@ -62,8 +62,8 @@ export default function Sidebar({ currentTab, onSelectTab }) {
 
   const navItems = getNavItems();
 
-  return (
-    <aside className="w-64 bg-coal-900/95 border-r border-slate-800 flex flex-col justify-between p-4 shrink-0 min-h-[calc(100vh-60px)]">
+  const sidebarContent = (
+    <div className="flex flex-col justify-between h-full p-4 space-y-6">
       <div className="space-y-6">
         {/* Active Role Indicator */}
         <div className="p-3 bg-coal-950 rounded-xl border border-slate-800">
@@ -86,7 +86,10 @@ export default function Sidebar({ currentTab, onSelectTab }) {
             return (
               <button
                 key={item.id}
-                onClick={() => onSelectTab(item.id)}
+                onClick={() => {
+                  onSelectTab(item.id);
+                  if (onClose) onClose();
+                }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 font-bold'
@@ -114,6 +117,28 @@ export default function Sidebar({ currentTab, onSelectTab }) {
           SIH Prototype • PS26024 • Compliance Monitoring
         </p>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Fixed Sidebar */}
+      <aside className="hidden lg:flex w-64 bg-coal-900/95 border-r border-slate-800 flex-col shrink-0 min-h-[calc(100vh-60px)]">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Backdrop & Drawer */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden flex">
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+            onClick={onClose}
+          />
+          <aside className="relative w-72 max-w-[80vw] bg-coal-900 border-r border-slate-800 flex flex-col z-50 h-full overflow-y-auto shadow-2xl">
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

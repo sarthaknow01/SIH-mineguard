@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
-import { Bell, LogOut, Shield, User, Clock, AlertTriangle, CheckCircle, Flame } from 'lucide-react';
+import { Bell, LogOut, Shield, User, Clock, AlertTriangle, CheckCircle, Flame, Menu, X } from 'lucide-react';
 import { formatDateTime } from '../../utils/dateHelpers';
 
-export default function Navbar({ onNavigate }) {
+export default function Navbar({ onNavigate, onToggleMobileMenu, isMobileMenuOpen }) {
   const { currentUser, logout } = useAuth();
   const { alerts, markAlertRead } = useData();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -15,24 +15,36 @@ export default function Navbar({ onNavigate }) {
   const unreadCount = userAlerts.filter(a => a.status === 'UNREAD').length;
 
   return (
-    <header className="bg-coal-900 border-b border-slate-800 px-6 py-3 flex items-center justify-between z-30">
-      {/* Brand & Logo */}
-      <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate('dashboard')}>
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 text-white font-extrabold text-lg">
-          <Flame className="w-6 h-6 text-white" />
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg font-black tracking-tight text-white flex items-center gap-1.5">
-              MineGuard <span className="text-amber-400">AI</span>
-            </h1>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono border border-slate-700">
-              v1.0
-            </span>
+    <header className="bg-coal-900 border-b border-slate-800 px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between z-30 sticky top-0">
+      {/* Brand & Logo + Mobile Menu Toggle */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {onToggleMobileMenu && (
+          <button
+            onClick={onToggleMobileMenu}
+            className="lg:hidden p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700 focus:outline-none"
+            aria-label="Toggle navigation menu"
+          >
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        )}
+
+        <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => onNavigate('dashboard')}>
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 text-white font-extrabold text-base sm:text-lg shrink-0">
+            <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
-          <p className="text-[11px] text-slate-400 tracking-wide">
-            Smart Governance & Compliance Monitoring System for Coal Mines
-          </p>
+          <div>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <h1 className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-1">
+                MineGuard <span className="text-amber-400">AI</span>
+              </h1>
+              <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono border border-slate-700 hidden sm:inline-block">
+                v1.0
+              </span>
+            </div>
+            <p className="text-[10px] sm:text-[11px] text-slate-400 tracking-wide hidden md:block">
+              Smart Governance & Compliance Monitoring System for Coal Mines
+            </p>
+          </div>
         </div>
       </div>
 

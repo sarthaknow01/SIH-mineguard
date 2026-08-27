@@ -35,6 +35,7 @@ function MainApp() {
   const { mines } = useData();
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [showQuickVerifier, setShowQuickVerifier] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedAuditMine, setSelectedAuditMine] = useState(null);
 
   // Role Authorization Guard Map
@@ -119,25 +120,17 @@ function MainApp() {
     if (role === 'MANAGEMENT') {
       switch (currentTab) {
         case 'dashboard':
-          return <ManagementDashboard onNavigate={(tab) => setCurrentTab(tab)} />;
+          return <ManagementDashboard onNavigate={(tab) => setCurrentTab(tab)} onSelectMine={(m) => setSelectedAuditMine(m)} />;
         case 'mines-compare':
-          return (
-            <div className="space-y-6">
-              <div className="pb-4 border-b border-slate-800">
-                <h2 className="text-xl font-bold text-white">Multi-Mine Compliance & Safety Benchmark</h2>
-                <p className="text-xs text-slate-400 mt-1">Comparative performance evaluation across operational coalfields</p>
-              </div>
-              <MineComparisonTable mines={mines} onSelectMine={(m) => setSelectedAuditMine(m)} />
-            </div>
-          );
+          return <MineComparisonTable mines={mines} onSelectMine={(m) => setSelectedAuditMine(m)} />;
         case 'risk-analytics':
-          return <ManagementDashboard onNavigate={(tab) => setCurrentTab(tab)} />;
+          return <ManagementDashboard onNavigate={(tab) => setCurrentTab(tab)} onSelectMine={(m) => setSelectedAuditMine(m)} />;
         case 'compliance-reports':
           return <ExecutiveReportView />;
         case 'audit-log':
           return <AuditTrailView />;
         default:
-          return <ManagementDashboard onNavigate={(tab) => setCurrentTab(tab)} />;
+          return <ManagementDashboard onNavigate={(tab) => setCurrentTab(tab)} onSelectMine={(m) => setSelectedAuditMine(m)} />;
       }
     }
 
@@ -146,7 +139,7 @@ function MainApp() {
         case 'dashboard':
           return <RegulatoryDashboard onNavigate={(tab) => setCurrentTab(tab)} />;
         case 'high-risk':
-          return <HighRiskMinesView onSelectMine={(m) => setSelectedAuditMine(m)} />;
+          return <HighRiskMinesView />;
         case 'directives':
           return <RegulatoryDashboard onNavigate={(tab) => setCurrentTab(tab)} />;
         case 'audit-log':
@@ -162,18 +155,27 @@ function MainApp() {
   };
 
   return (
-    <div className="min-h-screen bg-coal-950 flex flex-col font-sans text-slate-100 selection:bg-amber-500 selection:text-black">
+    <div className="min-h-screen bg-coal-950 flex flex-col font-sans text-slate-100 selection:bg-amber-500 selection:text-black overflow-x-hidden">
       {/* 1. Quick Role Switcher Bar */}
       <DemoQuickBar />
 
       {/* 2. Top Header / Navbar */}
-      <Navbar onNavigate={(tab) => setCurrentTab(tab)} />
+      <Navbar 
+        onNavigate={(tab) => setCurrentTab(tab)}
+        onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
+        isMobileMenuOpen={mobileMenuOpen}
+      />
 
       {/* 3. Main Body: Sidebar + Dynamic Dashboard Content */}
-      <div className="flex-1 flex overflow-hidden">
-        <Sidebar currentTab={currentTab} onSelectTab={(tab) => setCurrentTab(tab)} />
+      <div className="flex-1 flex overflow-hidden relative">
+        <Sidebar 
+          currentTab={currentTab} 
+          onSelectTab={(tab) => { setCurrentTab(tab); setMobileMenuOpen(false); }}
+          isOpen={mobileMenuOpen}
+          onClose={() => setMobileMenuOpen(false)}
+        />
 
-        <main className="flex-1 p-6 overflow-y-auto max-h-[calc(100vh-110px)]">
+        <main className="flex-1 p-3 sm:p-6 overflow-y-auto max-h-[calc(100vh-110px)] w-full max-w-full">
           <div className="max-w-7xl mx-auto space-y-6">
             {renderContent()}
           </div>

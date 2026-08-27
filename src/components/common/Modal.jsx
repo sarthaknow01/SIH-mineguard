@@ -27,7 +27,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 'ma
       />
 
       {/* Modal Box */}
-      <div className={`relative w-full ${maxWidth} rounded-2xl border border-slate-700/80 bg-coal-900 shadow-2xl p-6 z-10 my-8 transform transition-all`}>
+      <div className={`relative w-full ${maxWidth} rounded-2xl border border-slate-700/80 bg-coal-900 shadow-2xl p-4 sm:p-6 z-10 my-4 sm:my-8 max-h-[92vh] overflow-y-auto transform transition-all`}>
         <div className="flex items-start justify-between pb-4 border-b border-slate-800">
           <div>
             <h3 className="text-xl font-bold text-white tracking-wide flex items-center gap-2">
