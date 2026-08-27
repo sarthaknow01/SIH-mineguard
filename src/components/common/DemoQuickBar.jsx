@@ -5,17 +5,10 @@ import { ShieldCheck, HardHat, Briefcase, Building2, Landmark, RefreshCw, HelpCi
 import DemoGuideModal from './DemoGuideModal';
 
 export default function DemoQuickBar() {
-  const { currentUser, switchRole } = useAuth();
+  const { currentUser } = useAuth();
   const { resetDemoData } = useData();
   const [showGuide, setShowGuide] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
-
-  const roles = [
-    { key: 'INSPECTOR', label: 'Inspector', icon: HardHat, badge: 'Anita (INS-001)', color: 'border-amber-500 text-amber-400 bg-amber-500/10' },
-    { key: 'OFFICER', label: 'Mine Officer', icon: Briefcase, badge: 'Rajesh (Mine Alpha)', color: 'border-blue-500 text-blue-400 bg-blue-500/10' },
-    { key: 'MANAGEMENT', label: 'Management', icon: Building2, badge: 'Neha (Executive)', color: 'border-purple-500 text-purple-400 bg-purple-500/10' },
-    { key: 'AUTHORITY', label: 'Regulatory Authority', icon: Landmark, badge: 'Vivek (Reg Director)', color: 'border-emerald-500 text-emerald-400 bg-emerald-500/10' },
-  ];
 
   const handleReset = () => {
     resetDemoData();
@@ -42,30 +35,14 @@ export default function DemoQuickBar() {
           </button>
         </div>
 
-        {/* Center: Presentation Mode Demo Role Switcher */}
-        <div className="flex items-center gap-1.5 bg-coal-950 p-1 rounded-lg border border-slate-800">
-          <span className="text-[10px] font-extrabold uppercase text-amber-400/90 px-2 tracking-wider">
-            PRESENTATION MODE • ROLE SWITCHER:
+        {/* Center: Authenticated Session Info (No Role Switcher) */}
+        <div className="flex items-center gap-2 px-3 py-1 bg-coal-950 rounded-lg border border-slate-800">
+          <span className="text-[10px] font-bold uppercase text-slate-400">Authenticated Session:</span>
+          <span className="text-[11px] font-extrabold text-amber-400 font-mono flex items-center gap-1.5">
+            <span>{currentUser?.avatar}</span>
+            <span>{currentUser?.name}</span>
+            <span className="text-slate-400">({currentUser?.role})</span>
           </span>
-          {roles.map((r) => {
-            const Icon = r.icon;
-            const isActive = currentUser?.role === r.key;
-            return (
-              <button
-                key={r.key}
-                onClick={() => switchRole(r.key)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold transition-all ${
-                  isActive
-                    ? `${r.color} shadow-inner font-bold`
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-                }`}
-                title={`Switch presentation role to ${r.label}`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{r.label}</span>
-              </button>
-            );
-          })}
         </div>
 
         {/* Right: Reset Demo Data */}

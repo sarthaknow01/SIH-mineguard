@@ -5,9 +5,12 @@ import Badge from '../common/Badge';
 import { Users, Search, Filter, Plus, FileCheck, AlertTriangle } from 'lucide-react';
 import AddCertificateModal from './AddCertificateModal';
 
+import { useAuth } from '../../context/AuthContext';
+
 export default function WorkerRegistry() {
   const { workers, certificates, mines, violations } = useData();
-  const [selectedMine, setSelectedMine] = useState('ALL');
+  const { currentUser } = useAuth();
+  const [selectedMine, setSelectedMine] = useState(currentUser?.role === 'OFFICER' ? (currentUser.mineId || 'MINE-01') : 'ALL');
   const [selectedZone, setSelectedZone] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddCertModal, setShowAddCertModal] = useState(false);
@@ -41,7 +44,7 @@ export default function WorkerRegistry() {
             <span>Worker Compliance & Certification Registry</span>
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Personnel records, technical designations, statutory certification status, and renewal actions
+            Personnel records, technical designations, safety certification status, and renewal actions
           </p>
         </div>
 
@@ -60,14 +63,21 @@ export default function WorkerRegistry() {
           <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Filter by Mine</label>
           <select
             value={selectedMine}
+            disabled={currentUser?.role === 'OFFICER'}
             onChange={(e) => {
               setSelectedMine(e.target.value);
               setSelectedZone('ALL');
             }}
-            className="w-full px-2.5 py-1.5 bg-coal-950 border border-slate-700 rounded-lg text-white text-xs focus:outline-none"
+            className={`w-full px-2.5 py-1.5 bg-coal-950 border border-slate-700 rounded-lg text-white text-xs focus:outline-none ${currentUser?.role === 'OFFICER' ? 'opacity-80 cursor-not-allowed border-amber-500/40 text-amber-300 font-semibold' : ''}`}
           >
-            <option value="ALL">All Mines ({workers.length} Personnel)</option>
-            {mines.map(m => <option key={m.mineId} value={m.mineId}>{m.mineName}</option>)}
+            {currentUser?.role === 'OFFICER' ? (
+              <option value={currentUser.mineId || 'MINE-01'}>Demo Mine Alpha (Assigned Unit)</option>
+            ) : (
+              <>
+                <option value="ALL">All Mines ({workers.length} Personnel)</option>
+                {mines.map(m => <option key={m.mineId} value={m.mineId}>{m.mineName}</option>)}
+              </>
+            )}
           </select>
         </div>
 
@@ -133,7 +143,7 @@ export default function WorkerRegistry() {
                 {/* Certificates List */}
                 <div className="mt-3 pt-3 border-t border-slate-800 space-y-2">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    Statutory Certificates ({workerCerts.length})
+                    Compliance Certificates ({workerCerts.length})
                   </p>
                   {workerCerts.length === 0 ? (
                     <p className="text-[11px] text-slate-400 italic">No certificates recorded.</p>

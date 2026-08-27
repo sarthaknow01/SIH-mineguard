@@ -54,20 +54,13 @@ export function AuthProvider({ children }) {
     return { success: false, message: 'Invalid credentials. Check user ID / email and password.' };
   };
 
-  const switchRole = (roleKey) => {
-    const found = DEMO_ACCOUNTS.find(acc => acc.role === roleKey);
-    if (found) {
-      setCurrentUser(found);
-    }
-  };
-
   const logout = () => {
     setCurrentUser(null);
     localStorage.removeItem('mineguard_auth_user');
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, logout, switchRole }}>
+    <AuthContext.Provider value={{ currentUser, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

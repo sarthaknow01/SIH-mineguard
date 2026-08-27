@@ -13,10 +13,10 @@ export default function ExecutiveReportView() {
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-emerald-400" />
-            <span>Official Statutory Compliance Scorecard & Report</span>
+            <span>Executive Mine Compliance Scorecard & Summary Report (Prototype)</span>
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Generated official report for regulatory submission and board review
+            Generated executive summary report for compliance tracking and board review (SIH Prototype)
           </p>
         </div>
 

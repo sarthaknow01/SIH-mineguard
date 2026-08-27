@@ -85,7 +85,7 @@ export default function ReportViolationModal({ isOpen, onClose, initialData = {}
   ];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="⚠️ Report Mine Compliance Violation" subtitle="File an official statutory safety violation with automated AI risk prioritization" maxWidth="max-w-2xl">
+    <Modal isOpen={isOpen} onClose={onClose} title="⚠️ Report Mine Compliance Violation" subtitle="File a mine compliance violation with automated AI risk prioritization" maxWidth="max-w-2xl">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
@@ -135,7 +135,7 @@ export default function ReportViolationModal({ isOpen, onClose, initialData = {}
             >
               <option value="LOW" className="text-emerald-400">LOW (Observational)</option>
               <option value="MEDIUM" className="text-amber-400">MEDIUM (Remediation Required)</option>
-              <option value="HIGH" className="text-orange-400">HIGH (Major Statutory Breach)</option>
+              <option value="HIGH" className="text-orange-400">HIGH (Major Compliance Breach)</option>
               <option value="CRITICAL" className="text-red-400">CRITICAL (Immediate Danger to Life)</option>
             </select>
           </div>

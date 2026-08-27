@@ -43,7 +43,7 @@ export default function VerificationList() {
       {/* Pending Verifications Section */}
       <div className="space-y-3">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-          Remediations Awaiting Statutory Verification
+          Remediations Awaiting Compliance Verification
         </h3>
 
         {pendingVerifications.length === 0 ? (

@@ -39,7 +39,7 @@ export default function CertificateManager() {
             <span>Master Certificate Database & Expiry Tracker</span>
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Track all statutory mining competencies, upcoming expiry thresholds, and renewal archives
+            Track all safety mining competencies, upcoming expiry thresholds, and renewal archives
           </p>
         </div>
 
@@ -53,7 +53,25 @@ export default function CertificateManager() {
       </div>
 
       {/* Filter Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-coal-900 border border-slate-800 p-3.5 rounded-xl text-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-coal-900 border border-slate-800 p-3.5 rounded-xl text-xs">
+        <div>
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Filter by Mine</label>
+          <select
+            value={selectedMine}
+            disabled={currentUser?.role === 'OFFICER'}
+            onChange={(e) => setSelectedMine(e.target.value)}
+            className={`w-full px-2.5 py-1.5 bg-coal-950 border border-slate-700 rounded-lg text-white text-xs focus:outline-none ${currentUser?.role === 'OFFICER' ? 'opacity-80 cursor-not-allowed border-amber-500/40 text-amber-300 font-semibold' : ''}`}
+          >
+            {currentUser?.role === 'OFFICER' ? (
+              <option value={currentUser.mineId || 'MINE-01'}>Demo Mine Alpha (Assigned Unit)</option>
+            ) : (
+              <>
+                <option value="ALL">All Mines ({certificates.length} Records)</option>
+                {mines.map(m => <option key={m.mineId} value={m.mineId}>{m.mineName}</option>)}
+              </>
+            )}
+          </select>
+        </div>
         <div>
           <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Status Filter</label>
           <select

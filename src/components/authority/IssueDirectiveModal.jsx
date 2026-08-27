@@ -42,7 +42,7 @@ export default function IssueDirectiveModal({ isOpen, onClose }) {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1">Directive Title / Statutory Reference</label>
+          <label className="block text-xs font-semibold text-slate-300 mb-1">Compliance Notice Title / Reference</label>
           <input
             type="text"
             value={title}
@@ -53,7 +53,7 @@ export default function IssueDirectiveModal({ isOpen, onClose }) {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1">Detailed Statutory Remediation Directives</label>
+          <label className="block text-xs font-semibold text-slate-300 mb-1">Detailed Compliance Remediation Directives</label>
           <textarea
             rows="4"
             value={description}

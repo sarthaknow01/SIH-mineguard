@@ -170,7 +170,7 @@ export default function InspectionRunner({ onComplete }) {
         <div className="bg-coal-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
           <div className="p-4 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Statutory Evaluation Checklist ({checklist.length} Items)
+              Safety Evaluation Checklist ({checklist.length} Items)
             </span>
             <div className="flex items-center gap-3 text-xs">
               <span className="flex items-center gap-1 text-emerald-400">
@@ -281,7 +281,7 @@ export default function InspectionRunner({ onComplete }) {
               className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-black font-extrabold text-xs rounded-lg shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
             >
               <Send className="w-4 h-4" />
-              <span>Submit Statutory Inspection Report</span>
+              <span>Submit Field Inspection Report</span>
             </button>
           </div>
         </div>

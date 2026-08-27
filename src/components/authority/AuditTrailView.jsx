@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
+import { useAuth } from '../../context/AuthContext';
 import { History, Search, Filter, ShieldCheck, User } from 'lucide-react';
 import Badge from '../common/Badge';
 
 export default function AuditTrailView() {
   const { auditTrail, mines } = useData();
+  const { currentUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState('ALL');
+  const [filterMine, setFilterMine] = useState(currentUser?.role === 'OFFICER' ? (currentUser.mineId || 'MINE-01') : 'ALL');
 
   const filteredLogs = auditTrail.filter(item => {
+    if (currentUser?.role === 'OFFICER' && item.mineId && item.mineId !== (currentUser.mineId || 'MINE-01')) return false;
+    if (filterMine !== 'ALL' && item.mineId && item.mineId !== filterMine) return false;
     if (filterRole !== 'ALL' && item.role.toUpperCase() !== filterRole) return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -25,7 +30,7 @@ export default function AuditTrailView() {
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <History className="w-5 h-5 text-purple-400" />
-            <span>Statutory Compliance Governance Audit Trail</span>
+            <span>Mine Compliance Governance Audit Trail</span>
           </h2>
           <p className="text-xs text-slate-400 mt-1">
             Immutable chronological record of inspections, violations, alerts, and corrective action handoffs

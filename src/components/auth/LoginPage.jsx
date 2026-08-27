@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { DEMO_ACCOUNTS } from '../../utils/seedData';
 import { Flame, Lock, User, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
@@ -16,13 +15,6 @@ export default function LoginPage() {
     if (!res.success) {
       setError(res.message);
     }
-  };
-
-  const handleQuickLogin = (acc) => {
-    const credential = acc.userId || acc.email || acc.badge;
-    setUserId(credential);
-    setPassword(acc.password);
-    login(credential, acc.password);
   };
 
   return (
@@ -103,29 +95,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Logins */}
-          <div className="mt-5 pt-4 border-t border-slate-800">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-center mb-3">
-              SIH Demo Presentation — One-Click Role Logins
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {DEMO_ACCOUNTS.map((acc) => (
-                <button
-                  key={acc.userId}
-                  type="button"
-                  onClick={() => handleQuickLogin(acc)}
-                  className="flex items-center gap-2.5 p-2.5 bg-coal-950 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-left transition-colors text-xs text-slate-300 group"
-                >
-                  <span className="text-lg">{acc.avatar}</span>
-                  <div className="truncate">
-                    <p className="font-bold text-white text-[11px] group-hover:text-amber-400 transition-colors">{acc.role}</p>
-                    <p className="text-[10px] text-slate-400 truncate">{acc.name} ({acc.userId})</p>
-                    <p className="text-[9px] text-slate-500 font-mono truncate">{acc.password}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Footer Note */}

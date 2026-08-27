@@ -35,7 +35,7 @@ export default function ViolationsListView() {
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-red-400" />
-            <span>Statutory Violations & Safety Defect Registry</span>
+            <span>Mine Compliance Violations & Defect Registry</span>
           </h2>
           <p className="text-xs text-slate-400 mt-1">
             Complete database of reported non-compliances, AI risk rankings, and remediation progress
@@ -57,11 +57,18 @@ export default function ViolationsListView() {
           <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Filter by Mine</label>
           <select
             value={filterMine}
+            disabled={currentUser?.role === 'OFFICER'}
             onChange={(e) => setFilterMine(e.target.value)}
-            className="w-full px-2.5 py-1.5 bg-coal-950 border border-slate-700 rounded-lg text-white text-xs focus:outline-none"
+            className={`w-full px-2.5 py-1.5 bg-coal-950 border border-slate-700 rounded-lg text-white text-xs focus:outline-none ${currentUser?.role === 'OFFICER' ? 'opacity-80 cursor-not-allowed border-amber-500/40 text-amber-300 font-semibold' : ''}`}
           >
-            <option value="ALL">All Mines</option>
-            {mines.map(m => <option key={m.mineId} value={m.mineId}>{m.mineName}</option>)}
+            {currentUser?.role === 'OFFICER' ? (
+              <option value={currentUser.mineId || 'MINE-01'}>Demo Mine Alpha (Assigned Unit)</option>
+            ) : (
+              <>
+                <option value="ALL">All Mines</option>
+                {mines.map(m => <option key={m.mineId} value={m.mineId}>{m.mineName}</option>)}
+              </>
+            )}
           </select>
         </div>
 

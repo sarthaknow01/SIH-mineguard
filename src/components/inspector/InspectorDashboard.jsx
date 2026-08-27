@@ -136,7 +136,7 @@ export default function InspectorDashboard({ onNavigate }) {
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                 <ClipboardCheck className="w-4 h-4 text-blue-400" />
-                <span>Recent Statutory Inspection History</span>
+                <span>Recent Field Inspection History</span>
               </h3>
             </div>
 
@@ -207,7 +207,7 @@ export default function InspectorDashboard({ onNavigate }) {
           {/* Quick Verifier Card */}
           <div className="bg-coal-900 border border-slate-800 rounded-xl p-5 shadow-lg space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Statutory Field Tools
+              Inspector Field Tools
             </h4>
             <button
               onClick={() => setShowVerifier(true)}

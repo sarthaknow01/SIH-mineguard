@@ -16,7 +16,7 @@ export default function HighRiskMinesView({ onSelectMine }) {
             <span>High-Risk Mines & Critical Intervention Watchlist</span>
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Mines exhibiting compliance breaches below statutory safety thresholds (Score &lt; 75%)
+            Mines exhibiting compliance breaches below safety compliance thresholds (Score &lt; 75%)
           </p>
         </div>
         <Badge size="md">{highRiskList.length} High-Risk Units</Badge>
@@ -37,7 +37,7 @@ export default function HighRiskMinesView({ onSelectMine }) {
                 </div>
                 <div className="text-right font-mono">
                   <span className="text-2xl font-extrabold text-red-400">{m.complianceScore}%</span>
-                  <p className="text-[10px] text-slate-400">Statutory Score</p>
+                  <p className="text-[10px] text-slate-400">Compliance Score</p>
                 </div>
               </div>
 

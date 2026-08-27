@@ -39,7 +39,7 @@ export default function ManagementDashboard({ onNavigate }) {
           className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs rounded-lg flex items-center gap-1.5 self-start sm:self-auto"
         >
           <Download className="w-4 h-4 text-purple-400" />
-          <span>Export Statutory Scorecard</span>
+          <span>Export Compliance Scorecard</span>
         </button>
       </div>
 
@@ -60,7 +60,7 @@ export default function ManagementDashboard({ onNavigate }) {
           color={highRiskMines.length > 0 ? 'amber' : 'blue'}
         />
         <StatCard
-          title="Open Statutory Breaches"
+          title="Open Compliance Breaches"
           value={totalOpenViolations}
           subtitle="Active Corrective Remediation"
           icon={AlertTriangle}
@@ -80,7 +80,7 @@ export default function ManagementDashboard({ onNavigate }) {
         <div className="lg:col-span-2 bg-coal-900 border border-slate-800 rounded-xl p-5 shadow-lg">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-4 flex items-center gap-2">
             <Activity className="w-4 h-4 text-blue-400" />
-            <span>4-Week Statutory Compliance Trajectory by Mine</span>
+            <span>4-Week Compliance Score Trajectory by Mine</span>
           </h3>
           <ComplianceTrendChart mines={mines} />
         </div>
