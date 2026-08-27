@@ -10,7 +10,7 @@ export default function IssueDirectiveModal({ isOpen, onClose }) {
 
   const [mineId, setMineId] = useState('MINE-03'); // Default to Gamma
   const [title, setTitle] = useState('Mandatory Ventilation Recalibration & Blasting Protocol Audit');
-  const [description, setDescription] = useState('Notice issued under Section 22(1) of Mines Act. Compliance scores in Deep Seam IV have breached statutory thresholds. Immediate engineering audit mandated within 48 hours.');
+  const [description, setDescription] = useState('Notice: Compliance scores in Deep Seam IV have breached threshold. AI-assisted analysis recommends immediate engineering audit within 48 hours. This is a prototype-generated notice.');
   const [severity, setSeverity] = useState('CRITICAL');
 
   const handleSubmit = (e) => {
@@ -26,7 +26,7 @@ export default function IssueDirectiveModal({ isOpen, onClose }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="⚖️ Issue DGMS Statutory Safety Directive" subtitle="Issue an official regulatory notice to a non-compliant coal mine" maxWidth="max-w-2xl">
+    <Modal isOpen={isOpen} onClose={onClose} title="⚖️ Issue Regulatory Compliance Notice" subtitle="Issue an AI-assisted compliance notice to a non-compliant mine (Prototype)" maxWidth="max-w-2xl">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-xs font-semibold text-slate-300 mb-1">Target Non-Compliant Mine</label>
@@ -76,7 +76,7 @@ export default function IssueDirectiveModal({ isOpen, onClose }) {
             className="px-5 py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-lg shadow-lg shadow-red-600/20 flex items-center gap-1.5"
           >
             <Scale className="w-4 h-4" />
-            <span>Issue Official Directive</span>
+            <span>Issue Compliance Notice</span>
           </button>
         </div>
       </form>

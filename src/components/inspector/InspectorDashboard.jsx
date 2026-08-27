@@ -30,7 +30,7 @@ export default function InspectorDashboard({ onNavigate }) {
             </span>
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Logged in as <strong>{currentUser?.name}</strong> • Directorate General of Mines Safety (DGMS)
+            Logged in as <strong>{currentUser?.name}</strong> • Regulatory Compliance Inspector
           </p>
         </div>
 
@@ -166,23 +166,38 @@ export default function InspectorDashboard({ onNavigate }) {
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-4 h-4 text-amber-400" />
               <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400">
-                AI Risk Radar Alert
+                AI-Assisted Risk Prioritization Radar
               </h4>
             </div>
 
-            <div className="p-3 bg-coal-950 rounded-lg border border-slate-800 space-y-2">
-              <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-white">Rahul Patil (Electrician)</span>
-                <span className="font-mono font-bold text-red-400">86 / 100</span>
+            {openViolations.length > 0 ? (
+              (() => {
+                const topRisk = [...openViolations].sort((a, b) => (b.riskScore || 0) - (a.riskScore || 0))[0];
+                return (
+                  <div className="p-3 bg-coal-950 rounded-lg border border-slate-800 space-y-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-white truncate max-w-[170px]">
+                        {topRisk.workerName ? `${topRisk.workerName}` : topRisk.category}
+                      </span>
+                      <span className="font-mono font-bold text-red-400">{topRisk.riskScore || 85} / 100</span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      {topRisk.description}
+                    </p>
+                    <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
+                      <span>{topRisk.mineName} ({topRisk.area})</span>
+                      <Badge size="sm">{topRisk.riskLevel || topRisk.severity}</Badge>
+                    </div>
+                  </div>
+                );
+              })()
+            ) : (
+              <div className="p-3 bg-coal-950 rounded-lg border border-slate-800 text-center">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 mx-auto mb-1" />
+                <p className="text-xs font-bold text-white">All Operations Nominal</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">No critical active compliance breaches detected.</p>
               </div>
-              <p className="text-[11px] text-slate-300 leading-relaxed">
-                Assigned to 33kV Substation Zone 3 with an expired Electrical Competency Certificate (Expired 15-Aug-2026).
-              </p>
-              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
-                <span>Mine Alpha</span>
-                <Badge size="sm">HIGH RISK</Badge>
-              </div>
-            </div>
+            )}
 
             <p className="text-[11px] text-slate-400 mt-3 leading-relaxed">
               The AI Engine correlates worker technical designations against hazardous operational zones and certificate expiration buffers.
@@ -199,7 +214,7 @@ export default function InspectorDashboard({ onNavigate }) {
               className="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors"
             >
               <QrCode className="w-4 h-4 text-blue-400" />
-              <span>Simulate Certificate Scan</span>
+              <span>Lookup / Verify Worker Certificate</span>
             </button>
             <button
               onClick={() => onNavigate('inspections')}

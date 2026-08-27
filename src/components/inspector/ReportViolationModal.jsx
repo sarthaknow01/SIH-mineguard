@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Modal from '../common/Modal';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
@@ -8,6 +8,7 @@ import { AlertTriangle, Sparkles, UploadCloud } from 'lucide-react';
 export default function ReportViolationModal({ isOpen, onClose, initialData = {} }) {
   const { mines, workers, certificates, reportViolation } = useData();
   const { currentUser } = useAuth();
+  const fileInputRef = useRef(null);
 
   const [mineId, setMineId] = useState(initialData.mineId || 'MINE-01');
   const [area, setArea] = useState(initialData.area || 'Substation Zone 3');
@@ -18,6 +19,28 @@ export default function ReportViolationModal({ isOpen, onClose, initialData = {}
   const [description, setDescription] = useState(initialData.description || '');
   const [evidenceName, setEvidenceName] = useState('evidence_sample_photo.jpg');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Sync state whenever modal opens with new initialData
+  useEffect(() => {
+    if (isOpen) {
+      setMineId(initialData.mineId || 'MINE-01');
+      setArea(initialData.area || 'Substation Zone 3');
+      setCategory(initialData.category || 'Statutory Certification Breach');
+      setSeverity(initialData.severity || 'HIGH');
+      setWorkerId(initialData.workerId || '');
+      setCertificateId(initialData.certificateId || '');
+      setDescription(initialData.description || '');
+      setEvidenceName('evidence_field_capture.jpg');
+    }
+  }, [isOpen, initialData]);
+
+  // Handle file change
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setEvidenceName(file.name);
+    }
+  };
 
   // Live AI Preview
   const selectedWorker = workers.find(w => w.workerId === workerId);
@@ -160,21 +183,28 @@ export default function ReportViolationModal({ isOpen, onClose, initialData = {}
           />
         </div>
 
-        {/* Evidence upload simulation */}
+        {/* Evidence upload simulation with basic file input */}
         <div className="p-3 bg-coal-950 rounded-lg border border-slate-800 flex items-center justify-between">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            className="hidden" 
+            accept=".jpg,.jpeg,.png,.pdf" 
+          />
           <div className="flex items-center gap-2">
             <UploadCloud className="w-5 h-5 text-blue-400" />
             <div>
-              <p className="text-xs font-semibold text-white">Inspection Photographic / Document Evidence</p>
-              <p className="text-[10px] text-slate-400">{evidenceName} (Attached)</p>
+              <p className="text-xs font-semibold text-white">Photographic / Document Evidence (Prototype Reference)</p>
+              <p className="text-[10px] text-slate-400 font-mono">{evidenceName}</p>
             </div>
           </div>
           <button 
             type="button"
-            onClick={() => setEvidenceName(`evidence_capture_${Date.now().toString().slice(-4)}.jpg`)}
-            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px] border border-slate-700"
+            onClick={() => fileInputRef.current?.click()}
+            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px] border border-slate-700 font-semibold"
           >
-            Change Photo
+            Browse / Attach
           </button>
         </div>
 

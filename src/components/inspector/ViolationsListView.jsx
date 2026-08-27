@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
+import { useAuth } from '../../context/AuthContext';
 import { formatDate } from '../../utils/dateHelpers';
 import Badge from '../common/Badge';
 import { AlertTriangle, Filter, Search, ShieldAlert, Sparkles, Plus } from 'lucide-react';
@@ -7,9 +8,10 @@ import ReportViolationModal from './ReportViolationModal';
 
 export default function ViolationsListView() {
   const { violations, mines } = useData();
+  const { currentUser } = useAuth();
   const [filterSeverity, setFilterSeverity] = useState('ALL');
   const [filterStatus, setFilterStatus] = useState('ALL');
-  const [filterMine, setFilterMine] = useState('ALL');
+  const [filterMine, setFilterMine] = useState(currentUser?.role === 'OFFICER' ? (currentUser.mineId || 'MINE-01') : 'ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [showReportModal, setShowReportModal] = useState(false);
 

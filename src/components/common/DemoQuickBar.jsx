@@ -11,10 +11,10 @@ export default function DemoQuickBar() {
   const [resetConfirm, setResetConfirm] = useState(false);
 
   const roles = [
-    { key: 'INSPECTOR', label: 'Inspector', icon: HardHat, badge: 'Rajesh (INS-001)', color: 'border-amber-500 text-amber-400 bg-amber-500/10' },
-    { key: 'OFFICER', label: 'Mine Officer', icon: Briefcase, badge: 'Sanjay (Mine Alpha)', color: 'border-blue-500 text-blue-400 bg-blue-500/10' },
-    { key: 'MANAGEMENT', label: 'Management', icon: Building2, badge: 'Executive Board', color: 'border-purple-500 text-purple-400 bg-purple-500/10' },
-    { key: 'AUTHORITY', label: 'DGMS Authority', icon: Landmark, badge: 'Regulatory Lead', color: 'border-emerald-500 text-emerald-400 bg-emerald-500/10' },
+    { key: 'INSPECTOR', label: 'Inspector', icon: HardHat, badge: 'Anita (INS-001)', color: 'border-amber-500 text-amber-400 bg-amber-500/10' },
+    { key: 'OFFICER', label: 'Mine Officer', icon: Briefcase, badge: 'Rajesh (Mine Alpha)', color: 'border-blue-500 text-blue-400 bg-blue-500/10' },
+    { key: 'MANAGEMENT', label: 'Management', icon: Building2, badge: 'Neha (Executive)', color: 'border-purple-500 text-purple-400 bg-purple-500/10' },
+    { key: 'AUTHORITY', label: 'Regulatory Authority', icon: Landmark, badge: 'Vivek (Reg Director)', color: 'border-emerald-500 text-emerald-400 bg-emerald-500/10' },
   ];
 
   const handleReset = () => {
@@ -25,26 +25,28 @@ export default function DemoQuickBar() {
 
   return (
     <>
-      <div className="bg-coal-900 border-b border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-40 shadow-md">
+      <div className="bg-coal-900 border-b border-slate-800 px-4 py-2 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-40 shadow-md text-xs">
         {/* Left: Prototype Tag & Guide */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/15 border border-amber-500/30 rounded-md text-amber-400 text-xs font-bold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>SIH Prototype • PS26024</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/15 border border-amber-500/30 rounded-md text-amber-400 font-bold uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>SIH Prototype • Demo Data Mode</span>
           </div>
 
           <button
             onClick={() => setShowGuide(true)}
-            className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-xs font-medium transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md font-medium transition-colors shadow-sm"
           >
             <HelpCircle className="w-3.5 h-3.5 text-blue-400" />
             <span className="font-semibold text-blue-300">Live Presentation Script & Guide</span>
           </button>
         </div>
 
-        {/* Center: Instant Role Switcher */}
+        {/* Center: Presentation Mode Demo Role Switcher */}
         <div className="flex items-center gap-1.5 bg-coal-950 p-1 rounded-lg border border-slate-800">
-          <span className="text-[11px] font-semibold uppercase text-slate-400 px-2 tracking-wider">Switch Role:</span>
+          <span className="text-[10px] font-extrabold uppercase text-amber-400/90 px-2 tracking-wider">
+            PRESENTATION MODE • ROLE SWITCHER:
+          </span>
           {roles.map((r) => {
             const Icon = r.icon;
             const isActive = currentUser?.role === r.key;
@@ -52,12 +54,12 @@ export default function DemoQuickBar() {
               <button
                 key={r.key}
                 onClick={() => switchRole(r.key)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold transition-all ${
                   isActive
                     ? `${r.color} shadow-inner font-bold`
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
                 }`}
-                title={`Switch to ${r.label}`}
+                title={`Switch presentation role to ${r.label}`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{r.label}</span>

@@ -6,20 +6,23 @@ import { Users, Search, Filter, Plus, FileCheck, AlertTriangle } from 'lucide-re
 import AddCertificateModal from './AddCertificateModal';
 
 export default function WorkerRegistry() {
-  const { workers, certificates, mines } = useData();
+  const { workers, certificates, mines, violations } = useData();
   const [selectedMine, setSelectedMine] = useState('ALL');
+  const [selectedZone, setSelectedZone] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddCertModal, setShowAddCertModal] = useState(false);
   const [targetWorker, setTargetWorker] = useState(null);
 
   const filteredWorkers = workers.filter(w => {
     if (selectedMine !== 'ALL' && w.mineId !== selectedMine) return false;
+    if (selectedZone !== 'ALL' && w.zoneId !== selectedZone && w.zoneName !== selectedZone && w.area !== selectedZone) return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       return w.name.toLowerCase().includes(q) ||
              w.workerId.toLowerCase().includes(q) ||
              w.role.toLowerCase().includes(q) ||
-             w.area.toLowerCase().includes(q);
+             (w.zoneName && w.zoneName.toLowerCase().includes(q)) ||
+             (w.area && w.area.toLowerCase().includes(q));
     }
     return true;
   });
@@ -52,16 +55,35 @@ export default function WorkerRegistry() {
       </div>
 
       {/* Filter / Search bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-coal-900 border border-slate-800 p-3.5 rounded-xl text-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-coal-900 border border-slate-800 p-3.5 rounded-xl text-xs">
         <div>
           <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Filter by Mine</label>
           <select
             value={selectedMine}
-            onChange={(e) => setSelectedMine(e.target.value)}
+            onChange={(e) => {
+              setSelectedMine(e.target.value);
+              setSelectedZone('ALL');
+            }}
             className="w-full px-2.5 py-1.5 bg-coal-950 border border-slate-700 rounded-lg text-white text-xs focus:outline-none"
           >
             <option value="ALL">All Mines ({workers.length} Personnel)</option>
             {mines.map(m => <option key={m.mineId} value={m.mineId}>{m.mineName}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Filter by Zone</label>
+          <select
+            value={selectedZone}
+            onChange={(e) => setSelectedZone(e.target.value)}
+            className="w-full px-2.5 py-1.5 bg-coal-950 border border-slate-700 rounded-lg text-white text-xs focus:outline-none"
+          >
+            <option value="ALL">All Zones</option>
+            <option value="North Shaft">North Shaft</option>
+            <option value="South Shaft">South Shaft</option>
+            <option value="Processing Plant">Processing Plant</option>
+            <option value="Substation">Substation</option>
+            <option value="Workshop">Workshop</option>
           </select>
         </div>
 
@@ -73,8 +95,8 @@ export default function WorkerRegistry() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by worker name (e.g. Rahul, Amit), ID, or technical role..."
-              className="w-full pl-9 pr-3 py-1.5 bg-coal-950 border border-slate-700 rounded-lg text-white text-xs focus:outline-none"
+              placeholder="Search by worker name, ID, or technical role..."
+              className="w-full pl-9 pr-3 py-1.5 bg-coal-950 border border-slate-700 rounded-lg text-white text-xs focus:outline-none font-mono"
             />
           </div>
         </div>
@@ -147,11 +169,18 @@ export default function WorkerRegistry() {
 
       <AddCertificateModal
         isOpen={showAddCertModal}
-        onClose={() => setShowAddCertModal(false)}
+        onClose={() => {
+          setShowAddCertModal(false);
+          setTargetWorker(null);
+        }}
         initialData={{
-          workerId: targetWorker?.workerId || 'W-10452',
-          certificateType: 'Electrical Competency Certificate',
-          linkedViolationId: 'VIO-2026-001'
+          workerId: targetWorker?.workerId || '',
+          certificateType: targetWorker?.role?.toLowerCase().includes('electric') 
+            ? 'Electrical Competency Certificate'
+            : targetWorker?.role?.toLowerCase().includes('blast')
+            ? 'Mining Safety Training Certificate'
+            : 'Mining Safety Training Certificate',
+          linkedViolationId: violations.find(v => v.workerId === targetWorker?.workerId && v.status !== 'RESOLVED')?.violationId || ''
         }}
       />
     </div>

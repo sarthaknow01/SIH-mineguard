@@ -10,7 +10,7 @@ export default function VerificationList() {
   const { violations, correctiveActions, verifyAndResolveViolation } = useData();
   const { currentUser } = useAuth();
   const [selectedViolation, setSelectedViolation] = useState(null);
-  const [verifyNotes, setVerifyNotes] = useState('Verified renewed statutory certificate document. Remediation conforms with CEA & DGMS safety regulations.');
+  const [verifyNotes, setVerifyNotes] = useState('Verified renewed competency certificate document. Remediation conforms with applicable safety requirements.');
   const [isResolving, setIsResolving] = useState(false);
 
   // Filter violations awaiting verification
@@ -127,7 +127,7 @@ export default function VerificationList() {
 
       {/* Review & Verify Modal */}
       {selectedViolation && (
-        <Modal isOpen={!!selectedViolation} onClose={() => setSelectedViolation(null)} title="✅ Statutory Verification Sign-Off" subtitle="Confirm that compliance remediation meets DGMS statutory mining regulations">
+        <Modal isOpen={!!selectedViolation} onClose={() => setSelectedViolation(null)} title="✅ Inspector Verification Sign-Off" subtitle="Confirm that compliance remediation meets safety requirements">
           <div className="space-y-4">
             <div className="p-3.5 bg-coal-950 rounded-xl border border-slate-800 space-y-2">
               <div className="flex justify-between items-center text-xs font-mono">
@@ -150,7 +150,7 @@ export default function VerificationList() {
 
             <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-xs text-emerald-300 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Clicking sign-off will immediately transition the violation to <strong>RESOLVED</strong>, recalculate the mine compliance scorecard, and notify Management & DGMS.</span>
+              <span>Clicking sign-off will transition the violation to <strong>RESOLVED</strong>, recalculate the mine compliance scorecard, and notify Management & Regulatory Authority.</span>
             </div>
 
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
+import { useAuth } from '../../context/AuthContext';
 import { calculateCertificateStatus, formatDate } from '../../utils/dateHelpers';
 import Badge from '../common/Badge';
 import { FileCheck, Plus, Search, Filter, AlertTriangle, CheckCircle2 } from 'lucide-react';
@@ -7,12 +8,16 @@ import AddCertificateModal from './AddCertificateModal';
 
 export default function CertificateManager() {
   const { certificates, workers, mines } = useData();
+  const { currentUser } = useAuth();
+
+  const [selectedMine, setSelectedMine] = useState(currentUser?.role === 'OFFICER' ? (currentUser.mineId || 'MINE-01') : 'ALL');
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [filterCategory, setFilterCategory] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
 
   const filteredCerts = certificates.filter(c => {
+    if (selectedMine !== 'ALL' && c.mineId !== selectedMine) return false;
     const st = calculateCertificateStatus(c.expiryDate).status;
     if (filterStatus !== 'ALL' && st !== filterStatus) return false;
     if (filterCategory !== 'ALL' && c.certificateType !== filterCategory) return false;

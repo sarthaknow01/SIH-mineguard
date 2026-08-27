@@ -7,19 +7,27 @@ import { QrCode, Search, CheckCircle2, AlertTriangle, FileText, User } from 'luc
 
 export default function CertificateVerifierModal({ isOpen, onClose }) {
   const { certificates, workers, mines } = useData();
-  const [searchQuery, setSearchQuery] = useState('CERT-2024-0012'); // Defaults to Rahul's cert for instant demo
-  const [selectedCert, setSelectedCert] = useState(() => {
-    return certificates.find(c => c.certificateId === 'CERT-2024-0012') || certificates[0];
-  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCert, setSelectedCert] = useState(() => certificates[0]);
 
   const handleSearch = (e) => {
     e?.preventDefault();
+    if (!searchQuery.trim()) return;
     const found = certificates.find(
       c => c.certificateId.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-           c.workerName.toLowerCase().includes(searchQuery.trim().toLowerCase())
+           c.workerName.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+           c.workerId.toLowerCase().includes(searchQuery.trim().toLowerCase())
     );
     if (found) {
       setSelectedCert(found);
+    }
+  };
+
+  const handleSelectCertId = (id) => {
+    const found = certificates.find(c => c.certificateId === id);
+    if (found) {
+      setSelectedCert(found);
+      setSearchQuery(found.certificateId);
     }
   };
 
@@ -28,62 +36,66 @@ export default function CertificateVerifierModal({ isOpen, onClose }) {
   const linkedMine = selectedCert ? mines.find(m => m.mineId === selectedCert.mineId) : null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="🔍 Certificate Verification & Statutory Lookup" subtitle="Verify worker competency credentials against statutory safety database" maxWidth="max-w-2xl">
+    <Modal isOpen={isOpen} onClose={onClose} title="🔍 Certificate Verification & Compliance Lookup" subtitle="Verify worker competency credentials against active compliance registry" maxWidth="max-w-2xl">
       <div className="space-y-4">
-        {/* Search & Simulated QR Input */}
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Enter Certificate ID (e.g. CERT-2024-0012) or Worker Name..."
-              className="w-full pl-9 pr-3 py-2 bg-coal-950 border border-slate-700 rounded-lg text-xs text-white font-mono focus:outline-none focus:border-amber-500"
-            />
+        {/* Search & Certificate Selector */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <form onSubmit={handleSearch} className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by ID or Worker Name..."
+                className="w-full pl-9 pr-3 py-2 bg-coal-950 border border-slate-700 rounded-lg text-xs text-white font-mono focus:outline-none focus:border-amber-500"
+              />
+            </div>
+            <button
+              type="submit"
+              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-lg transition-colors flex items-center gap-1"
+            >
+              <span>Search</span>
+            </button>
+          </form>
+
+          <div>
+            <select
+              value={selectedCert?.certificateId || ''}
+              onChange={(e) => handleSelectCertId(e.target.value)}
+              className="w-full px-3 py-2 bg-coal-950 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
+            >
+              {certificates.map(c => (
+                <option key={c.certificateId} value={c.certificateId}>
+                  {c.certificateId} — {c.workerName} ({c.certificateType.split(' ')[0]})
+                </option>
+              ))}
+            </select>
           </div>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5"
-          >
-            <Search className="w-3.5 h-3.5" />
-            <span>Lookup</span>
-          </button>
-        </form>
+        </div>
 
         {/* Quick Demo Pre-set Chips */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="text-[11px] text-slate-400">Quick Test Records:</span>
-          <button
-            type="button"
-            onClick={() => {
-              const c = certificates.find(x => x.certificateId === 'CERT-2024-0012');
-              if (c) { setSelectedCert(c); setSearchQuery(c.certificateId); }
-            }}
-            className="px-2 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded text-[11px] font-mono"
-          >
-            CERT-2024-0012 (Rahul - Expired)
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              const c = certificates.find(x => x.certificateId === 'CERT-2024-0991');
-              if (c) { setSelectedCert(c); setSearchQuery(c.certificateId); }
-            }}
-            className="px-2 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-[11px] font-mono"
-          >
-            CERT-2024-0991 (Amit - Expiring)
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              const c = certificates.find(x => x.certificateId === 'CERT-2025-0842');
-              if (c) { setSelectedCert(c); setSearchQuery(c.certificateId); }
-            }}
-            className="px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded text-[11px] font-mono"
-          >
-            CERT-2025-0842 (Rahul - Valid)
-          </button>
+          <span className="text-[11px] text-slate-400">Demo Quick Select:</span>
+          {certificates.slice(0, 4).map(c => {
+            const st = calculateCertificateStatus(c.expiryDate).status;
+            return (
+              <button
+                key={c.certificateId}
+                type="button"
+                onClick={() => handleSelectCertId(c.certificateId)}
+                className={`px-2 py-1 border rounded text-[11px] font-mono transition-colors ${
+                  st === 'EXPIRED' 
+                    ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/30' 
+                    : st === 'EXPIRING SOON' 
+                    ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/30' 
+                    : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                }`}
+              >
+                {c.certificateId} ({c.workerName.split(' ')[0]} - {st})
+              </button>
+            );
+          })}
         </div>
 
         {/* Certificate Display Card */}

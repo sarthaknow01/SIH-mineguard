@@ -44,7 +44,7 @@ export default function ExecutiveReportView() {
           </div>
           <div className="text-right text-xs font-mono text-slate-400">
             <p>Report Date: {new Date().toLocaleDateString('en-GB')}</p>
-            <p>Status: DGMS AUDITED</p>
+            <p>Status: SYSTEM GENERATED (Prototype)</p>
           </div>
         </div>
 
@@ -107,7 +107,7 @@ export default function ExecutiveReportView() {
           <div>
             <p className="font-bold text-slate-200">Statutory Mine Inspector:</p>
             <p className="mt-4 font-mono text-slate-300">Rajesh Kumar (INS-001)</p>
-            <p className="text-[10px]">DGMS Authorized Officer</p>
+            <p className="text-[10px]">Regulatory Inspection Authority (Demo)</p>
           </div>
           <div className="text-right">
             <p className="font-bold text-slate-200">Director General Safety:</p>

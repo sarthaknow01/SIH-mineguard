@@ -51,9 +51,9 @@ export default function Sidebar({ currentTab, onSelectTab }) {
         return [
           { id: 'dashboard', label: 'National Overview', icon: LayoutDashboard },
           { id: 'high-risk', label: 'High-Risk Mines', icon: AlertTriangle },
-          { id: 'directives', label: 'DGMS Directives', icon: Scale },
-          { id: 'audit-log', label: 'Statutory Audit Trail', icon: History },
-          { id: 'compliance-reports', label: 'DGMS Safety Reports', icon: BarChart3 },
+          { id: 'directives', label: 'Regulatory Notices', icon: Scale },
+          { id: 'audit-log', label: 'Compliance Audit Trail', icon: History },
+          { id: 'compliance-reports', label: 'Safety Reports', icon: BarChart3 },
         ];
       default:
         return [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }];
@@ -111,7 +111,7 @@ export default function Sidebar({ currentTab, onSelectTab }) {
           </span>
         </div>
         <p className="text-[10px] text-slate-400 text-center pt-2">
-          Ministry of Coal • DGMS Compliant
+          SIH Prototype • PS26024 • Compliance Monitoring
         </p>
       </div>
     </aside>

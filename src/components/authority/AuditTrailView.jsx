@@ -47,7 +47,7 @@ export default function AuditTrailView() {
             <option value="INSPECTOR">Inspector</option>
             <option value="OFFICER">Mine Officer</option>
             <option value="MANAGEMENT">Management</option>
-            <option value="AUTHORITY">Regulatory Authority (DGMS)</option>
+            <option value="AUTHORITY">Regulatory Authority</option>
           </select>
         </div>
 

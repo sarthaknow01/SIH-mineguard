@@ -7,38 +7,38 @@ export default function DemoGuideModal({ isOpen, onClose }) {
     {
       num: '1',
       role: '👷 INSPECTOR',
-      title: 'Conduct Inspection & Detect Expired Certificate',
-      desc: '1. Select "Demo Mine Alpha" -> "Substation Zone 3".\n2. Execute checklist: Mark PPE & Equipment as PASS.\n3. Mark "Worker Certificate" as FAIL for electrician Rahul Patil.\n4. Click "Report Violation" -> Select Severity HIGH -> Observe the explainable AI Risk Score (86/100) generated automatically.',
-      highlight: 'Shows field inspection, AI risk scoring, and automated alert dispatch.'
+      title: 'Conduct Inspection & Detect Compliance Issue',
+      desc: '1. Select any coal mine (e.g. "Demo Mine Alpha") and operational area.\n2. Execute the digital SOP checklist: mark passed items.\n3. Mark a failing compliance parameter (e.g. expired competency certificate or equipment issue).\n4. Click "Submit" -> Report Violation -> Observe the explainable AI-Assisted Risk Score (e.g. 86/100) generated with specific risk factor breakdown.',
+      highlight: 'Demonstrates digital field inspection, explainable AI risk scoring, and automated alert dispatch.'
     },
     {
       num: '2',
       role: '🧑‍💼 MINE OFFICER',
-      title: 'Remediate Issue & Upload Renewed Certificate',
-      desc: '1. Switch to Mine Officer role.\n2. View the new High-Severity Alert for Violation VIO-2026-001.\n3. Open Corrective Actions -> Create Action CA-2026-001 ("Obtain Renewed Certificate").\n4. Open Worker Registry -> Rahul Patil -> Click "+ Add / Renew Certificate".\n5. Upload renewed Certificate CERT-2026-009 (Valid till 2028). Worker status immediately switches to 🟢 VALID and issue moves to "VERIFICATION REQUIRED".',
-      highlight: 'Shows compliance management, corrective action lifecycle, and worker certificate registry.'
+      title: 'Remediate Issue & Register Corrective Action',
+      desc: '1. Switch to Mine Officer role.\n2. Review the new High-Severity Alert in the notification stream.\n3. Open Corrective Actions -> Click "+ Create Corrective Action" to assign a remediation team and target due date.\n4. Open Worker Registry -> Click "+ Add / Renew Certificate" to register renewed competency documentation.\n5. Worker status updates to 🟢 VALID and the issue automatically moves to "VERIFICATION REQUIRED".',
+      highlight: 'Demonstrates internal mine compliance management, corrective action lifecycle, and worker certificate registry.'
     },
     {
       num: '3',
       role: '👷 INSPECTOR',
-      title: 'Verify Resolution & Formal Sign-Off',
-      desc: '1. Switch back to Inspector role.\n2. Open "Verification Sign-Off" tab.\n3. Review the uploaded renewed certificate document and remediation notes.\n4. Click "Verify & Resolve Issue" with 1 click.',
-      highlight: 'Demonstrates dual-party verification and regulatory closure.'
+      title: 'Review Remediation & Verify Closure',
+      desc: '1. Switch back to Inspector role.\n2. Open "Verification Sign-Off" tab.\n3. Review the uploaded remediation documentation and officer notes.\n4. Click "Review & Sign-Off" -> Formally mark the issue as RESOLVED.',
+      highlight: 'Demonstrates dual-party statutory verification and closed-loop issue resolution.'
     },
     {
       num: '4',
       role: '🏢 MANAGEMENT & 🏛️ REGULATORY',
-      title: 'Live Executive Oversight & DGMS Governance',
-      desc: '1. Switch to Management: Watch Mine Alpha compliance score rise live (74% -> 88%), risk drop to LOW, and trend charts update.\n2. Switch to DGMS Authority: Inspect cross-mine compliance benchmarks, high-risk flags (e.g. Mine Gamma at 61%), and review the tamper-evident Audit Trail.',
-      highlight: 'Proves centralized connected governance across all organization levels.'
+      title: 'Executive Oversight & Cross-Mine Surveillance',
+      desc: '1. Switch to Management: Watch the mine compliance score improve realistically (e.g. 84% -> 88%), risk drop, and trend charts update.\n2. Switch to Regulatory Authority: Inspect cross-mine compliance benchmarks across 5 coalfields (e.g. high-risk flags like Mine Gamma at 61%), issue regulatory notices, and review the tamper-evident Audit Trail.',
+      highlight: 'Proves centralized connected governance and visibility across all organizational tiers.'
     },
   ];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="🏆 SIH Judge Presentation Walkthrough Script" subtitle="Recommended step-by-step flow to demonstrate the complete compliance lifecycle" maxWidth="max-w-3xl">
+    <Modal isOpen={isOpen} onClose={onClose} title="🏆 SIH Presentation Walkthrough & Demonstration Flow" subtitle="Recommended step-by-step presentation script to demonstrate the complete compliance lifecycle" maxWidth="max-w-3xl">
       <div className="space-y-4">
         <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-lg text-xs text-amber-300">
-          <strong>Core Presentation Message:</strong> "This prototype demonstrates an AI-assisted closed-loop compliance governance system for coal mines. When a hazard or expired certificate is detected, the AI evaluates its risk, alerts the mine officer, tracks corrective remediation, and requires inspector verification before updating executive compliance scores."
+          <strong>Core Presentation Message:</strong> "MineGuard AI demonstrates an explainable, closed-loop compliance and safety governance system for coal mines. When a hazard or expired credential is detected, the AI evaluates its risk, alerts mine management, tracks corrective remediation, and requires dual-party verification before updating executive compliance scores."
         </div>
 
         <div className="space-y-3 mt-4">

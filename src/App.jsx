@@ -37,19 +37,49 @@ function MainApp() {
   const [showQuickVerifier, setShowQuickVerifier] = useState(false);
   const [selectedAuditMine, setSelectedAuditMine] = useState(null);
 
-  // Reset tab when user role changes
+  // Role Authorization Guard Map
+  const roleAllowedTabs = {
+    INSPECTOR: ['dashboard', 'inspections', 'verify-cert', 'violations', 'verifications'],
+    OFFICER: ['dashboard', 'workers', 'certificates', 'actions', 'violations', 'inspections-log'],
+    MANAGEMENT: ['dashboard', 'mines-compare', 'risk-analytics', 'compliance-reports', 'audit-log'],
+    AUTHORITY: ['dashboard', 'high-risk', 'directives', 'audit-log', 'compliance-reports']
+  };
+
+  // Reset tab when user role changes or when unauthorized tab is selected
   useEffect(() => {
-    setCurrentTab('dashboard');
-  }, [currentUser?.role]);
+    if (currentUser?.role && roleAllowedTabs[currentUser.role]) {
+      if (!roleAllowedTabs[currentUser.role].includes(currentTab)) {
+        setCurrentTab('dashboard');
+      }
+    }
+  }, [currentUser?.role, currentTab]);
 
   if (!currentUser) {
     return <LoginPage />;
   }
 
   const role = currentUser.role;
+  const isAuthorizedTab = roleAllowedTabs[role]?.includes(currentTab);
 
   // Render role-specific tab content
   const renderContent = () => {
+    if (!isAuthorizedTab) {
+      return (
+        <div className="p-8 bg-red-500/10 border border-red-500/30 rounded-xl text-center space-y-3">
+          <h3 className="text-lg font-bold text-red-400">Access Denied — Unauthorized Department Route</h3>
+          <p className="text-xs text-slate-300">
+            Your account ({currentUser.name} - {currentUser.role}) does not have permission to view this department page.
+          </p>
+          <button
+            onClick={() => setCurrentTab('dashboard')}
+            className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs rounded-lg shadow-lg"
+          >
+            Return to Authorized {currentUser.role} Dashboard
+          </button>
+        </div>
+      );
+    }
+
     if (role === 'INSPECTOR') {
       switch (currentTab) {
         case 'dashboard':

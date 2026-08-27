@@ -5,24 +5,44 @@ import { ClipboardCheck, CheckCircle2, XCircle, MinusCircle, AlertTriangle, Send
 import ReportViolationModal from './ReportViolationModal';
 
 export default function InspectionRunner({ onComplete }) {
-  const { mines, workers, createInspection } = useData();
+  const { mines, workers, certificates, createInspection } = useData();
   const { currentUser } = useAuth();
 
   const [mineId, setMineId] = useState('MINE-01');
-  const [area, setArea] = useState('Substation Zone 3');
+  const selectedMine = mines.find(m => m.mineId === mineId) || mines[0];
+  const [area, setArea] = useState(selectedMine?.zones?.[0]?.zoneName || 'North Shaft');
   const [inspectionType, setInspectionType] = useState('Electrical & Personnel Compliance Safety Inspection');
   const [generalNotes, setGeneralNotes] = useState('');
   const [showViolationModal, setShowViolationModal] = useState(false);
   const [submittedInspection, setSubmittedInspection] = useState(null);
+  const [inspectionSuccessMsg, setInspectionSuccessMsg] = useState('');
+
+  // Update area when mineId changes
+  const handleMineChange = (newMineId) => {
+    setMineId(newMineId);
+    const m = mines.find(x => x.mineId === newMineId);
+    if (m && m.zones && m.zones.length > 0) {
+      setArea(m.zones[0].zoneName);
+    }
+  };
+
+  // Find workers and candidate cert for the selected mine and zone
+  const mineWorkers = workers.filter(w => w.mineId === mineId);
+  const zoneWorkers = mineWorkers.filter(w => w.zoneName === area || w.area === area);
+  const activeWorkersPool = zoneWorkers.length > 0 ? zoneWorkers : mineWorkers;
+
+  const candidateWorker = activeWorkersPool.find(w => {
+    return certificates.some(c => c.workerId === w.workerId && new Date(c.expiryDate) < new Date());
+  }) || activeWorkersPool[0];
 
   // Pre-configured checklist items
   const [checklist, setChecklist] = useState([
     { id: 1, category: 'Safety & Signage', item: 'Danger High Voltage signage & isolation barriers in place', status: 'PASS', notes: 'Visible and illuminated' },
     { id: 2, category: 'Safety & Signage', item: 'Emergency fire extinguishers inspected and charged (CO2/Dry Powder)', status: 'PASS', notes: 'Pressure gauges nominal' },
-    { id: 3, category: 'Equipment Safety', item: 'Transformer grounding & earth leakage circuit breakers tested', status: 'PASS', notes: 'Ground resistance 1.8 ohms' },
-    { id: 4, category: 'Equipment Safety', item: '15kV grade insulated rubber floor matting in front of breaker panels', status: 'PASS', notes: 'Test stamp verified' },
-    { id: 5, category: 'Worker Compliance', item: 'On-duty personnel possess valid Electrical Competency Certificate', status: 'FAIL', notes: 'Electrician Rahul Patil (W-10452) certificate CERT-2024-0012 expired on 15 Aug 2026' },
-    { id: 6, category: 'Worker Compliance', item: 'Mandatory PPE (Arc-flash face shield, insulated safety gloves) worn', status: 'PASS', notes: 'PPE in proper use' },
+    { id: 3, category: 'Equipment Safety', item: 'Transformer grounding & earth leakage circuit breakers tested', status: 'PASS', notes: 'Ground resistance nominal' },
+    { id: 4, category: 'Equipment Safety', item: 'Insulated rubber floor matting in front of power panels', status: 'PASS', notes: 'Tested and stamp verified' },
+    { id: 5, category: 'Worker Compliance', item: 'On-duty personnel possess valid mandatory competency certificate', status: 'FAIL', notes: 'Assigned personnel competency certificate expired' },
+    { id: 6, category: 'Worker Compliance', item: 'Mandatory PPE (Arc-flash shield / helmet / safety boots) worn', status: 'PASS', notes: 'PPE in proper use' },
   ]);
 
   const updateItemStatus = (id, newStatus) => {
@@ -34,7 +54,6 @@ export default function InspectionRunner({ onComplete }) {
   };
 
   const hasFailures = checklist.some(item => item.status === 'FAIL');
-  const selectedMine = mines.find(m => m.mineId === mineId);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -55,8 +74,12 @@ export default function InspectionRunner({ onComplete }) {
     setSubmittedInspection(newInsp);
     if (hasFailures) {
       setShowViolationModal(true);
+    } else {
+      setInspectionSuccessMsg(`Inspection ${newInsp.inspectionId} submitted successfully with 100% PASS score.`);
     }
   };
+
+  const candidateCert = candidateWorker ? certificates.find(c => c.workerId === candidateWorker.workerId) : null;
 
   return (
     <div className="space-y-6">
@@ -67,10 +90,28 @@ export default function InspectionRunner({ onComplete }) {
             <span>Digital Field Safety Inspection Runner</span>
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Standard Operating Procedure (SOP) statutory compliance evaluation checklist
+            Standard Operating Procedure (SOP) safety & compliance evaluation checklist
           </p>
         </div>
       </div>
+
+      {inspectionSuccessMsg && (
+        <div className="p-4 bg-emerald-500/15 border border-emerald-500/30 rounded-xl flex items-center justify-between gap-3 text-xs text-emerald-300">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <span className="font-semibold">{inspectionSuccessMsg}</span>
+          </div>
+          <button
+            onClick={() => {
+              setInspectionSuccessMsg('');
+              if (onComplete) onComplete();
+            }}
+            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition-colors"
+          >
+            Done
+          </button>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Inspection Header Selector */}
@@ -79,25 +120,35 @@ export default function InspectionRunner({ onComplete }) {
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">Assigned Coal Mine</label>
             <select
               value={mineId}
-              onChange={(e) => setMineId(e.target.value)}
+              onChange={(e) => handleMineChange(e.target.value)}
               className="w-full px-3 py-2 bg-coal-950 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500 font-medium"
             >
               {mines.map(m => (
-                <option key={m.mineId} value={m.mineId}>{m.mineName} — {m.location.split(',')[0]}</option>
+                <option key={m.mineId} value={m.mineId}>{m.mineName} ({m.mineId})</option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Inspected Mine Zone / Face</label>
-            <input
-              type="text"
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Inspected Mine Zone / Operational Area</label>
+            <select
               value={area}
               onChange={(e) => setArea(e.target.value)}
-              className="w-full px-3 py-2 bg-coal-950 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500"
-              placeholder="e.g. Substation Zone 3"
-              required
-            />
+              className="w-full px-3 py-2 bg-coal-950 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500 font-medium"
+            >
+              {selectedMine?.zones ? (
+                selectedMine.zones.map(z => (
+                  <option key={z.zoneId} value={z.zoneName}>{z.zoneId}: {z.zoneName}</option>
+                ))
+              ) : (
+                <>
+                  <option value="North Shaft">North Shaft</option>
+                  <option value="South Shaft">South Shaft</option>
+                  <option value="Processing Plant">Processing Plant</option>
+                  <option value="Substation">Substation</option>
+                </>
+              )}
+            </select>
           </div>
 
           <div>
@@ -248,9 +299,11 @@ export default function InspectionRunner({ onComplete }) {
           area,
           category: 'Statutory Certification Breach',
           severity: 'HIGH',
-          workerId: 'W-10452',
-          certificateId: 'CERT-2024-0012',
-          description: 'Electrician Rahul Patil (W-10452) found actively performing 33kV high-voltage substation duties with an expired Electrical Competency Certificate (Expired 15-Aug-2026).',
+          workerId: candidateWorker?.workerId || '',
+          certificateId: candidateCert?.certificateId || '',
+          description: candidateWorker 
+            ? `${candidateWorker.role} ${candidateWorker.name} (${candidateWorker.workerId}) observed on duty in ${area} with expired safety competency certification.`
+            : `Safety non-compliance detected in ${area} requiring immediate remediation.`,
           inspectionId: submittedInspection?.inspectionId
         }}
       />

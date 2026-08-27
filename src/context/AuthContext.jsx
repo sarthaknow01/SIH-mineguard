@@ -7,10 +7,19 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('mineguard_auth_user');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* ignore */ }
+      try {
+        const parsed = JSON.parse(saved);
+        const validUser = DEMO_ACCOUNTS.find(
+          acc => acc.userId === parsed?.userId || acc.badge === parsed?.badge || acc.email === parsed?.email
+        );
+        if (validUser) return validUser;
+      } catch (e) {
+        /* invalid JSON */
+      }
+      localStorage.removeItem('mineguard_auth_user');
     }
-    // Default to Inspector on fresh load
-    return DEMO_ACCOUNTS[0];
+    // CRITICAL: Fresh launch MUST default to null (LOGIN FIRST)
+    return null;
   });
 
   useEffect(() => {
@@ -21,15 +30,28 @@ export function AuthProvider({ children }) {
     }
   }, [currentUser]);
 
-  const login = (userId, password) => {
-    const found = DEMO_ACCOUNTS.find(
-      acc => acc.userId.toLowerCase() === userId.trim().toLowerCase() && acc.password === password
-    );
+  const login = (inputIdentifier, password) => {
+    if (!inputIdentifier || !password) {
+      return { success: false, message: 'Please enter both login ID/email and password.' };
+    }
+
+    const cleanId = inputIdentifier.trim().toLowerCase();
+    const cleanPass = password.trim();
+
+    const found = DEMO_ACCOUNTS.find(acc => {
+      const matchId = (acc.userId && acc.userId.toLowerCase() === cleanId) ||
+                      (acc.email && acc.email.toLowerCase() === cleanId) ||
+                      (acc.badge && acc.badge.toLowerCase() === cleanId);
+      const matchPass = acc.password === cleanPass;
+      return matchId && matchPass;
+    });
+
     if (found) {
       setCurrentUser(found);
       return { success: true, user: found };
     }
-    return { success: false, message: 'Invalid credentials. Use one of the demo accounts.' };
+
+    return { success: false, message: 'Invalid credentials. Check user ID / email and password.' };
   };
 
   const switchRole = (roleKey) => {
@@ -41,6 +63,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     setCurrentUser(null);
+    localStorage.removeItem('mineguard_auth_user');
   };
 
   return (

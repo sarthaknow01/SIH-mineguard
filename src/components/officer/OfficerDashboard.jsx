@@ -13,6 +13,7 @@ export default function OfficerDashboard({ onNavigate }) {
   const { currentUser } = useAuth();
   const [showAddCertModal, setShowAddCertModal] = useState(false);
   const [selectedViolationForAction, setSelectedViolationForAction] = useState(null);
+  const [targetCertUpload, setTargetCertUpload] = useState({});
 
   // Focus on Mine Alpha (Officer's assigned mine)
   const currentMineId = currentUser?.mineId || 'MINE-01';
@@ -27,6 +28,17 @@ export default function OfficerDashboard({ onNavigate }) {
     const st = calculateCertificateStatus(c.expiryDate).status;
     return st === 'EXPIRING SOON' || st === 'EXPIRED';
   });
+
+  const handleOpenUploadForCert = (c) => {
+    const linkedV = violations.find(v => (v.workerId === c.workerId || v.certificateId === c.certificateId) && v.status !== 'RESOLVED');
+    setTargetCertUpload({
+      workerId: c.workerId,
+      certificateType: c.certificateType,
+      certificateId: `CERT-2026-${Date.now().toString().slice(-4)}`,
+      linkedViolationId: linkedV?.violationId || ''
+    });
+    setShowAddCertModal(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -46,7 +58,14 @@ export default function OfficerDashboard({ onNavigate }) {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowAddCertModal(true)}
+            onClick={() => {
+              if (expiringCerts.length > 0) {
+                handleOpenUploadForCert(expiringCerts[0]);
+              } else {
+                setTargetCertUpload({});
+                setShowAddCertModal(true);
+              }
+            }}
             className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-lg shadow-lg shadow-blue-600/20 flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
@@ -196,7 +215,7 @@ export default function OfficerDashboard({ onNavigate }) {
                     <div className="flex justify-between items-center text-[10px] text-slate-400 font-mono pt-1 border-t border-slate-800/60">
                       <span>Exp: {formatDate(c.expiryDate)}</span>
                       <button
-                        onClick={() => setShowAddCertModal(true)}
+                        onClick={() => handleOpenUploadForCert(c)}
                         className="text-blue-400 hover:text-blue-300 font-semibold"
                       >
                         Upload Renewed
@@ -213,11 +232,7 @@ export default function OfficerDashboard({ onNavigate }) {
       <AddCertificateModal
         isOpen={showAddCertModal}
         onClose={() => setShowAddCertModal(false)}
-        initialData={{
-          workerId: 'W-10452',
-          certificateType: 'Electrical Competency Certificate',
-          linkedViolationId: 'VIO-2026-001'
-        }}
+        initialData={targetCertUpload}
       />
       <CreateActionModal
         isOpen={!!selectedViolationForAction}

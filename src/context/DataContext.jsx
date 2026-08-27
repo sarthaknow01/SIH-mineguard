@@ -7,8 +7,7 @@ import {
   DEMO_VIOLATIONS,
   DEMO_ALERTS,
   DEMO_CORRECTIVE_ACTIONS,
-  DEMO_AUDIT_TRAIL,
-  DEMO_EQUIPMENT
+  DEMO_AUDIT_TRAIL
 } from '../utils/seedData';
 import { calculateCertificateStatus, getTodayDateString } from '../utils/dateHelpers';
 import { evaluateRisk } from '../utils/aiRiskEngine';
@@ -26,7 +25,6 @@ export function DataProvider({ children }) {
   const [alerts, setAlerts] = useState(() => loadFromStorage('alerts', DEMO_ALERTS));
   const [correctiveActions, setCorrectiveActions] = useState(() => loadFromStorage('correctiveActions', DEMO_CORRECTIVE_ACTIONS));
   const [auditTrail, setAuditTrail] = useState(() => loadFromStorage('auditTrail', DEMO_AUDIT_TRAIL));
-  const [equipment] = useState(() => loadFromStorage('equipment', DEMO_EQUIPMENT));
 
   function loadFromStorage(key, fallback) {
     const saved = localStorage.getItem(STORAGE_KEY_PREFIX + key);
@@ -48,25 +46,54 @@ export function DataProvider({ children }) {
     localStorage.setItem(STORAGE_KEY_PREFIX + 'auditTrail', JSON.stringify(auditTrail));
   }, [mines, workers, certificates, inspections, violations, alerts, correctiveActions, auditTrail]);
 
-  // Recalculate Mine Scores dynamically based on open violations
-  const recalculateMineScores = () => {
+  // Recalculate Mine Scores dynamically based on a multi-factor weighted compliance model
+  const recalculateMineScores = (vArr = violations, cArr = certificates, aArr = correctiveActions, wArr = workers) => {
+    const BASELINE_SCORES = {
+      'MINE-01': 88,
+      'MINE-02': 82,
+      'MINE-03': 61,
+      'MINE-04': 91,
+      'MINE-05': 73,
+    };
+
     setMines(prevMines => {
       return prevMines.map(m => {
-        const mineViolations = violations.filter(v => v.mineId === m.mineId && v.status !== 'RESOLVED');
-        const activeViolationsCount = mineViolations.length;
-        const pendingActionsCount = correctiveActions.filter(ca => ca.mineId === m.mineId && ca.status !== 'RESOLVED' && ca.status !== 'VERIFIED').length;
-        
-        // Base scoring logic
-        let deductions = 0;
-        mineViolations.forEach(v => {
-          if (v.severity === 'CRITICAL') deductions += 15;
-          else if (v.severity === 'HIGH') deductions += 8;
-          else if (v.severity === 'MEDIUM') deductions += 4;
-          else deductions += 2;
+        const base = BASELINE_SCORES[m.mineId] ?? 80;
+        const mineViolations = vArr.filter(v => v.mineId === m.mineId);
+        const openViolations = mineViolations.filter(v => v.status !== 'RESOLVED');
+        const resolvedViolations = mineViolations.filter(v => v.status === 'RESOLVED');
+        const activeViolationsCount = openViolations.length;
+
+        const mineActions = aArr.filter(ca => ca.mineId === m.mineId);
+        const pendingActionsCount = mineActions.filter(ca => ca.status !== 'RESOLVED' && ca.status !== 'VERIFIED').length;
+        const verifiedActionsCount = mineActions.filter(ca => ca.status === 'VERIFIED' || ca.status === 'RESOLVED').length;
+
+        // 1. Violation severity impact
+        let violationDeduction = 0;
+        openViolations.forEach(v => {
+          if (v.severity === 'CRITICAL') violationDeduction += 6;
+          else if (v.severity === 'HIGH') violationDeduction += 4;
+          else if (v.severity === 'MEDIUM') violationDeduction += 2;
+          else violationDeduction += 1;
         });
 
-        // Calculate score
-        let newScore = Math.max(45, Math.min(98, 100 - deductions));
+        // 2. Certificate status impact for workers of this mine
+        const mineWorkers = wArr.filter(w => w.mineId === m.mineId);
+        const mineCerts = cArr.filter(c => c.mineId === m.mineId || mineWorkers.some(w => w.workerId === c.workerId));
+        let certDeduction = 0;
+        mineCerts.forEach(c => {
+          const st = calculateCertificateStatus(c.expiryDate).status;
+          if (st === 'EXPIRED') certDeduction += 3;
+          else if (st === 'EXPIRING SOON') certDeduction += 1;
+        });
+
+        // 3. Remediation bonus (recovering points when issues are resolved)
+        const remediationBonus = Math.min(6, (resolvedViolations.length * 2) + (verifiedActionsCount * 1));
+
+        // Calculate final score constrained realistically
+        let calculatedScore = base - violationDeduction - certDeduction + remediationBonus;
+        let newScore = Math.max(45, Math.min(95, Math.round(calculatedScore)));
+
         let riskLevel = 'LOW';
         if (newScore < 70) riskLevel = 'HIGH';
         else if (newScore < 80) riskLevel = 'MEDIUM';
@@ -96,10 +123,11 @@ export function DataProvider({ children }) {
 
     // Add audit log
     addAuditLog(actorName, 'INSPECTOR', 'INSPECTION_SUBMITTED', 
-      `Conducted inspection ${newId} in ${inspectionData.mineName} (${inspectionData.area}). Result: ${inspectionData.overallResult}`, 
+      `Conducted safety inspection ${newId} in ${inspectionData.mineName} (${inspectionData.area}). Result: ${inspectionData.overallResult}`, 
       inspectionData.mineId
     );
 
+    recalculateMineScores(violations, certificates, correctiveActions, workers);
     return newInspection;
   };
 
@@ -115,7 +143,7 @@ export function DataProvider({ children }) {
       if (cert) certStatus = calculateCertificateStatus(cert.expiryDate).status;
     }
 
-    // Evaluate Risk with AI Engine
+    // Evaluate Risk with Explainable AI Engine
     const aiRisk = evaluateRisk({
       category: violationData.category,
       severity: violationData.severity,
@@ -136,14 +164,15 @@ export function DataProvider({ children }) {
       reportedBy: actorName || 'Inspector INS-001',
     };
 
-    setViolations(prev => [newViolation, ...prev]);
+    const updatedViolations = [newViolation, ...violations];
+    setViolations(updatedViolations);
 
     // Automatically generate system Alert for Mine Officer and Management
     const newAlert = {
       alertId: `ALT-${Date.now().toString().slice(-4)}`,
       type: 'VIOLATION_REPORTED',
       severity: violationData.severity,
-      title: `${violationData.severity} Severity Violation: ${violationData.category}`,
+      title: `${violationData.severity} Severity Issue: ${violationData.category}`,
       description: `${actorName || 'Inspector'} reported ${newId} in ${violationData.area} (${violationData.mineName || violationData.mineId}): ${violationData.description}`,
       relatedEntity: newId,
       mineId: violationData.mineId,
@@ -155,12 +184,12 @@ export function DataProvider({ children }) {
 
     // Audit trail
     addAuditLog(actorName, 'INSPECTOR', 'REPORT_VIOLATION', 
-      `Reported Violation ${newId} for ${violationData.mineId}. AI Risk Score: ${aiRisk.score}/100.`,
+      `Reported Violation ${newId} for ${violationData.mineId} (${violationData.area}). AI-Assisted Risk Score: ${aiRisk.score}/100 (${aiRisk.level}).`,
       violationData.mineId
     );
 
-    // Recalculate scores
-    setTimeout(recalculateMineScores, 100);
+    // Immediate score recalculation with updated violations array
+    recalculateMineScores(updatedViolations, certificates, correctiveActions, workers);
 
     return newViolation;
   };
@@ -178,14 +207,16 @@ export function DataProvider({ children }) {
       resolvedDate: null,
     };
 
-    setCorrectiveActions(prev => [newAction, ...prev]);
+    const updatedActions = [newAction, ...correctiveActions];
+    setCorrectiveActions(updatedActions);
 
     // Update violation status
-    setViolations(prev => prev.map(v => 
+    const updatedViolations = violations.map(v => 
       v.violationId === actionData.violationId 
         ? { ...v, status: 'ACTION IN PROGRESS' } 
         : v
-    ));
+    );
+    setViolations(updatedViolations);
 
     // Audit trail
     addAuditLog(actorName, 'OFFICER', 'CREATE_CORRECTIVE_ACTION', 
@@ -193,44 +224,36 @@ export function DataProvider({ children }) {
       actionData.mineId
     );
 
+    recalculateMineScores(updatedViolations, certificates, updatedActions, workers);
     return newAction;
   };
 
-  // 4. Register / Upload Renewed Certificate (Mine Officer)
-  // This automatically transitions worker certificate status to VALID and advances linked violation to VERIFICATION REQUIRED!
-  const addOrUpdateCertificate = (certData, linkedViolationId, actorName) => {
-    const isUpdate = certificates.some(c => c.certificateId === certData.certificateId);
-    
-    let updatedCerts;
-    if (isUpdate) {
-      updatedCerts = certificates.map(c => 
-        c.certificateId === certData.certificateId 
-          ? { ...c, ...certData, verificationStatus: 'VALID' } 
-          : c
-      );
-    } else {
-      updatedCerts = [{ ...certData, verificationStatus: 'VALID' }, ...certificates];
-    }
-    setCertificates(updatedCerts);
+  // 3b. Update Corrective Action (e.g. submit remediation notes, moving to VERIFICATION REQUIRED)
+  const updateCorrectiveAction = (actionId, updateData, actorName) => {
+    let linkedViolationId = null;
+    let targetMineId = 'MINE-01';
 
-    // If linked to a violation, move violation & corrective action to VERIFICATION REQUIRED
-    if (linkedViolationId) {
-      setViolations(prev => prev.map(v => 
+    const updatedActions = correctiveActions.map(ca => {
+      if (ca.actionId === actionId) {
+        linkedViolationId = ca.violationId;
+        targetMineId = ca.mineId;
+        return {
+          ...ca,
+          ...updateData,
+        };
+      }
+      return ca;
+    });
+    setCorrectiveActions(updatedActions);
+
+    let updatedViolations = violations;
+    if (updateData.status === 'VERIFICATION REQUIRED' && linkedViolationId) {
+      updatedViolations = violations.map(v => 
         v.violationId === linkedViolationId 
           ? { ...v, status: 'VERIFICATION REQUIRED' } 
           : v
-      ));
-
-      setCorrectiveActions(prev => prev.map(ca => 
-        ca.violationId === linkedViolationId
-          ? { 
-              ...ca, 
-              status: 'VERIFICATION REQUIRED', 
-              completionNotes: `Renewed certificate ${certData.certificateId} uploaded and verified by Mine Officer. Awaiting Inspector verification sign-off.`,
-              evidence: certData.documentUrl || 'renewed_certificate_doc.pdf'
-            }
-          : ca
-      ));
+      );
+      setViolations(updatedViolations);
 
       // Alert Inspector for Verification Sign-Off
       const verifyAlert = {
@@ -238,7 +261,72 @@ export function DataProvider({ children }) {
         type: 'VERIFICATION_REQUIRED',
         severity: 'MEDIUM',
         title: `Verification Sign-Off Required for Violation ${linkedViolationId}`,
-        description: `Mine Officer uploaded renewed certificate for ${certData.workerName}. Inspector sign-off required to close.`,
+        description: `Mine Officer submitted remediation for ${linkedViolationId}: ${updateData.completionNotes || 'Remediation completed, awaiting inspector verification.'}`,
+        relatedEntity: linkedViolationId,
+        mineId: targetMineId,
+        createdDate: new Date().toISOString(),
+        status: 'UNREAD',
+        targetRoles: ['inspector']
+      };
+      setAlerts(prev => [verifyAlert, ...prev]);
+    }
+
+    addAuditLog(actorName, 'OFFICER', 'UPDATE_CORRECTIVE_ACTION', 
+      `Updated Corrective Action ${actionId} status to ${updateData.status || 'UPDATED'}.`,
+      targetMineId
+    );
+
+    recalculateMineScores(updatedViolations, certificates, updatedActions, workers);
+  };
+
+  // 4. Register / Upload Renewed Certificate (Mine Officer)
+  // This updates certificate status and advances linked violation to VERIFICATION REQUIRED!
+  const addOrUpdateCertificate = (certData, linkedViolationId, actorName) => {
+    const isUpdate = certificates.some(c => c.certificateId === certData.certificateId);
+    
+    let updatedCerts;
+    if (isUpdate) {
+      updatedCerts = certificates.map(c => 
+        c.certificateId === certData.certificateId 
+          ? { ...c, ...certData } 
+          : c
+      );
+    } else {
+      updatedCerts = [{ ...certData }, ...certificates];
+    }
+    setCertificates(updatedCerts);
+
+    let updatedViolations = violations;
+    let updatedActions = correctiveActions;
+
+    // If linked to a violation, move violation & corrective action to VERIFICATION REQUIRED
+    if (linkedViolationId) {
+      updatedViolations = violations.map(v => 
+        v.violationId === linkedViolationId 
+          ? { ...v, status: 'VERIFICATION REQUIRED' } 
+          : v
+      );
+      setViolations(updatedViolations);
+
+      updatedActions = correctiveActions.map(ca => 
+        ca.violationId === linkedViolationId
+          ? { 
+              ...ca, 
+              status: 'VERIFICATION REQUIRED', 
+              completionNotes: `Renewed certificate ${certData.certificateId} registered by Mine Officer for ${certData.workerName}. Awaiting Inspector verification sign-off.`,
+              evidence: certData.documentUrl || 'renewed_certificate_doc.pdf'
+            }
+          : ca
+      );
+      setCorrectiveActions(updatedActions);
+
+      // Alert Inspector for Verification Sign-Off
+      const verifyAlert = {
+        alertId: `ALT-${Date.now().toString().slice(-4)}`,
+        type: 'VERIFICATION_REQUIRED',
+        severity: 'MEDIUM',
+        title: `Verification Sign-Off Required for Violation ${linkedViolationId}`,
+        description: `Mine Officer registered renewed certificate for ${certData.workerName}. Inspector sign-off required to close.`,
         relatedEntity: linkedViolationId,
         mineId: certData.mineId,
         createdDate: new Date().toISOString(),
@@ -253,22 +341,24 @@ export function DataProvider({ children }) {
       certData.mineId
     );
 
-    setTimeout(recalculateMineScores, 100);
+    recalculateMineScores(updatedViolations, updatedCerts, updatedActions, workers);
   };
 
   // 5. Inspector Verifies and Resolves Violation
   const verifyAndResolveViolation = (violationId, notes, actorName) => {
-    setViolations(prev => prev.map(v => 
+    const updatedViolations = violations.map(v => 
       v.violationId === violationId 
         ? { ...v, status: 'RESOLVED', resolvedDate: getTodayDateString(), verificationNotes: notes } 
         : v
-    ));
+    );
+    setViolations(updatedViolations);
 
-    setCorrectiveActions(prev => prev.map(ca => 
+    const updatedActions = correctiveActions.map(ca => 
       ca.violationId === violationId 
         ? { ...ca, status: 'VERIFIED', resolvedDate: getTodayDateString() } 
         : ca
-    ));
+    );
+    setCorrectiveActions(updatedActions);
 
     const targetViolation = violations.find(v => v.violationId === violationId);
     const targetMineId = targetViolation?.mineId || 'MINE-01';
@@ -278,7 +368,7 @@ export function DataProvider({ children }) {
       targetMineId
     );
 
-    // Create celebratory alert
+    // Create resolved notification alert
     const resolvedAlert = {
       alertId: `ALT-${Date.now().toString().slice(-4)}`,
       type: 'ISSUE_RESOLVED',
@@ -293,17 +383,17 @@ export function DataProvider({ children }) {
     };
     setAlerts(prev => [resolvedAlert, ...prev]);
 
-    setTimeout(recalculateMineScores, 100);
+    recalculateMineScores(updatedViolations, certificates, updatedActions, workers);
   };
 
-  // 6. Issue Regulatory Directive (Regulatory Authority)
+  // 6. Issue Regulatory Directive Notice (Regulatory Authority)
   const issueDirective = (directiveData, actorName) => {
     const alertId = `ALT-${Date.now().toString().slice(-4)}`;
     const newAlert = {
       alertId,
       type: 'REGULATORY_DIRECTIVE',
       severity: directiveData.severity || 'CRITICAL',
-      title: `DGMS Official Directive: ${directiveData.title}`,
+      title: `Compliance Notice: ${directiveData.title}`,
       description: directiveData.description,
       relatedEntity: directiveData.mineId,
       mineId: directiveData.mineId,
@@ -315,7 +405,7 @@ export function DataProvider({ children }) {
     setAlerts(prev => [newAlert, ...prev]);
 
     addAuditLog(actorName, 'AUTHORITY', 'ISSUE_DIRECTIVE', 
-      `Issued DGMS Directive to ${directiveData.mineId}: "${directiveData.title}"`,
+      `Issued Compliance Notice to ${directiveData.mineId}: "${directiveData.title}"`,
       directiveData.mineId
     );
   };
@@ -374,10 +464,11 @@ export function DataProvider({ children }) {
       alerts,
       correctiveActions,
       auditTrail,
-      equipment,
+      equipment: [],
       createInspection,
       reportViolation,
       createCorrectiveAction,
+      updateCorrectiveAction,
       addOrUpdateCertificate,
       verifyAndResolveViolation,
       issueDirective,
@@ -395,3 +486,4 @@ export function useData() {
   if (!context) throw new Error('useData must be used within a DataProvider');
   return context;
 }
+

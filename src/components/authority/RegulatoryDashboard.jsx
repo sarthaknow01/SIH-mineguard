@@ -24,13 +24,13 @@ export default function RegulatoryDashboard({ onNavigate }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <span>Directorate General of Mines Safety (DGMS)</span>
+            <span>Regulatory Authority — Compliance Surveillance</span>
             <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono">
               National Oversight
             </span>
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Director General: <strong>{currentUser?.name}</strong> • Statutory Mine Safety Enforcement
+            Regional Director: <strong>{currentUser?.name}</strong> • AI-Assisted Compliance Monitoring (Prototype)
           </p>
         </div>
 
@@ -40,7 +40,7 @@ export default function RegulatoryDashboard({ onNavigate }) {
             className="px-3.5 py-2 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-bold text-xs rounded-lg shadow-lg shadow-red-600/20 flex items-center gap-1.5"
           >
             <Scale className="w-4 h-4" />
-            <span>Issue DGMS Statutory Directive</span>
+            <span>Issue Regulatory Compliance Notice</span>
           </button>
         </div>
       </div>
@@ -50,7 +50,7 @@ export default function RegulatoryDashboard({ onNavigate }) {
         <StatCard
           title="National Safety Index"
           value={`${nationalAvg}%`}
-          subtitle="DGMS Benchmark Threshold"
+          subtitle="Regulatory Benchmark Threshold"
           icon={Landmark}
           color="emerald"
         />
@@ -87,7 +87,7 @@ export default function RegulatoryDashboard({ onNavigate }) {
                 Statutory Warning: {highRiskMines[0].mineName} Compliance Index at {highRiskMines[0].complianceScore}%
               </h4>
               <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Demo Mine Gamma has repeatedly failed ventilation and blasting safety parameters. DGMS special inspection audit recommended.
+                Demo Mine Gamma has repeatedly flagged ventilation and blasting safety concerns. AI-assisted analysis recommends a focused audit inspection.
               </p>
             </div>
           </div>
