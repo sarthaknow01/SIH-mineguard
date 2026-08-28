@@ -33,11 +33,6 @@ import AuditTrailView from './components/authority/AuditTrailView';
 function MainApp() {
   const { currentUser } = useAuth();
   const { mines } = useData();
-  const [currentTab, setCurrentTab] = useState('dashboard');
-  const [showQuickVerifier, setShowQuickVerifier] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [selectedAuditMine, setSelectedAuditMine] = useState(null);
-
   // Role Authorization Guard Map
   const roleAllowedTabs = {
     INSPECTOR: ['dashboard', 'inspections', 'verify-cert', 'violations', 'verifications'],
@@ -46,13 +41,80 @@ function MainApp() {
     AUTHORITY: ['dashboard', 'high-risk', 'directives', 'audit-log', 'compliance-reports']
   };
 
-  // Reset tab when user role changes or when unauthorized tab is selected
-  useEffect(() => {
-    if (currentUser?.role && roleAllowedTabs[currentUser.role]) {
-      if (!roleAllowedTabs[currentUser.role].includes(currentTab)) {
-        setCurrentTab('dashboard');
+  // Helper to parse route from URL hash
+  const parseRouteFromHash = (userRole) => {
+    const rawHash = window.location.hash.replace(/^#\/?/, '');
+    if (!rawHash) return null;
+
+    const parts = rawHash.split('/');
+    let targetTab = null;
+
+    if (parts.length >= 2) {
+      targetTab = parts[1];
+    } else if (parts.length === 1) {
+      const seg = parts[0].toLowerCase();
+      if (['inspector', 'officer', 'management', 'authority'].includes(seg)) {
+        targetTab = 'dashboard';
+      } else {
+        targetTab = seg;
       }
     }
+
+    if (userRole && roleAllowedTabs[userRole]?.includes(targetTab)) {
+      return targetTab;
+    }
+    return null;
+  };
+
+  // Initialize currentTab from URL hash or localStorage
+  const [currentTab, setCurrentTab] = useState(() => {
+    const role = currentUser?.role;
+    if (role) {
+      const fromHash = parseRouteFromHash(role);
+      if (fromHash) return fromHash;
+      const savedTab = localStorage.getItem('mineguard_current_tab');
+      if (savedTab && roleAllowedTabs[role]?.includes(savedTab)) {
+        return savedTab;
+      }
+    }
+    return 'dashboard';
+  });
+
+  const [showQuickVerifier, setShowQuickVerifier] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedAuditMine, setSelectedAuditMine] = useState(null);
+
+  // Sync tab with URL Hash and Local Storage + Role Authorization Guard
+  useEffect(() => {
+    if (!currentUser?.role) return;
+
+    const role = currentUser.role;
+    const allowed = roleAllowedTabs[role];
+
+    if (allowed && !allowed.includes(currentTab)) {
+      setCurrentTab('dashboard');
+      return;
+    }
+
+    localStorage.setItem('mineguard_current_tab', currentTab);
+    const expectedHash = `#/${role.toLowerCase()}/${currentTab}`;
+    if (window.location.hash !== expectedHash) {
+      window.history.replaceState(null, '', expectedHash);
+    }
+  }, [currentUser?.role, currentTab]);
+
+  // Sync on browser back/forward or hash changes
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (!currentUser?.role) return;
+      const routeTab = parseRouteFromHash(currentUser.role);
+      if (routeTab && routeTab !== currentTab) {
+        setCurrentTab(routeTab);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, [currentUser?.role, currentTab]);
 
   if (!currentUser) {
