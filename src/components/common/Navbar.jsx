@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
-import { Bell, LogOut, Shield, User, Clock, AlertTriangle, CheckCircle, Flame, Menu, X } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
+import { Bell, LogOut, Shield, User, Clock, AlertTriangle, CheckCircle, Flame, Menu, X, Sun, Moon } from 'lucide-react';
 import { formatDateTime } from '../../utils/dateHelpers';
 
 export default function Navbar({ onNavigate, onToggleMobileMenu, isMobileMenuOpen }) {
   const { currentUser, logout } = useAuth();
   const { alerts, markAlertRead } = useData();
+  const { theme, toggleTheme } = useTheme();
   const [showNotifications, setShowNotifications] = useState(false);
 
   // Filter alerts relevant to current role
@@ -49,7 +51,27 @@ export default function Navbar({ onNavigate, onToggleMobileMenu, isMobileMenuOpe
       </div>
 
       {/* Right User & Notification Controls */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2.5 sm:gap-4">
+        {/* Theme Switcher Button */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 sm:px-3 sm:py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700 flex items-center gap-2"
+          title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+          aria-label="Toggle Theme"
+        >
+          {theme === 'dark' ? (
+            <>
+              <Sun className="w-4 h-4 text-amber-400 animate-spin-slow" />
+              <span className="text-xs font-medium hidden sm:inline">Light</span>
+            </>
+          ) : (
+            <>
+              <Moon className="w-4 h-4 text-amber-500" />
+              <span className="text-xs font-medium hidden sm:inline">Dark</span>
+            </>
+          )}
+        </button>
+
         {/* Notifications Bell */}
         <div className="relative">
           <button

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Flame, Lock, User, ArrowRight, ShieldCheck } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
+import { Flame, Lock, User, ArrowRight, ShieldCheck, Sun, Moon } from 'lucide-react';
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -19,6 +21,27 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-coal-950 flex flex-col justify-center items-center p-4 relative overflow-hidden">
+      {/* Absolute Theme Toggle Button */}
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          onClick={toggleTheme}
+          className="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700 flex items-center gap-2 shadow-lg backdrop-blur-md"
+          title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+        >
+          {theme === 'dark' ? (
+            <>
+              <Sun className="w-4 h-4 text-amber-400" />
+              <span className="text-xs font-semibold">Light Mode</span>
+            </>
+          ) : (
+            <>
+              <Moon className="w-4 h-4 text-amber-500" />
+              <span className="text-xs font-semibold text-slate-700">Dark Mode</span>
+            </>
+          )}
+        </button>
+      </div>
+
       {/* Background ambient lighting */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-10 right-1/4 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>

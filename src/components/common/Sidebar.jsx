@@ -12,7 +12,9 @@ import {
   FileText,
   Activity,
   History,
-  Scale
+  Scale,
+  Radio,
+  AlertOctagon
 } from 'lucide-react';
 
 export default function Sidebar({ currentTab, onSelectTab, isOpen, onClose }) {
@@ -29,6 +31,7 @@ export default function Sidebar({ currentTab, onSelectTab, isOpen, onClose }) {
           { id: 'verify-cert', label: 'Verify Certificate', icon: FileCheck },
           { id: 'violations', label: 'Violations & Reports', icon: AlertTriangle },
           { id: 'verifications', label: 'Verification Sign-Off', icon: ShieldAlert },
+          { id: 'sos-history', label: 'SOS Alerts Log', icon: Radio },
         ];
       case 'OFFICER':
         return [
@@ -38,6 +41,7 @@ export default function Sidebar({ currentTab, onSelectTab, isOpen, onClose }) {
           { id: 'actions', label: 'Corrective Actions', icon: ShieldAlert },
           { id: 'violations', label: 'Violations Inbox', icon: AlertTriangle },
           { id: 'inspections-log', label: 'Inspection History', icon: History },
+          { id: 'sos-history', label: 'SOS Alerts Log', icon: Radio },
         ];
       case 'MANAGEMENT':
         return [
@@ -46,6 +50,7 @@ export default function Sidebar({ currentTab, onSelectTab, isOpen, onClose }) {
           { id: 'risk-analytics', label: 'AI Risk Analytics', icon: Activity },
           { id: 'compliance-reports', label: 'Compliance Reports', icon: BarChart3 },
           { id: 'audit-log', label: 'Governance Audit Trail', icon: History },
+          { id: 'sos-history', label: 'SOS Alerts Log', icon: Radio },
         ];
       case 'AUTHORITY':
         return [
@@ -54,6 +59,7 @@ export default function Sidebar({ currentTab, onSelectTab, isOpen, onClose }) {
           { id: 'directives', label: 'Regulatory Notices', icon: Scale },
           { id: 'audit-log', label: 'Compliance Audit Trail', icon: History },
           { id: 'compliance-reports', label: 'Safety Reports', icon: BarChart3 },
+          { id: 'sos-history', label: 'SOS Alerts Log', icon: Radio },
         ];
       default:
         return [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }];

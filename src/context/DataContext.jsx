@@ -8,7 +8,8 @@ import {
   DEMO_VIOLATIONS,
   DEMO_ALERTS,
   DEMO_CORRECTIVE_ACTIONS,
-  DEMO_AUDIT_TRAIL
+  DEMO_AUDIT_TRAIL,
+  DEMO_SOS_ALERTS
 } from '../utils/seedData';
 import { calculateCertificateStatus, getTodayDateString } from '../utils/dateHelpers';
 import { evaluateRisk } from '../utils/aiRiskEngine';
@@ -616,6 +617,7 @@ export function DataProvider({ children }) {
   const [alerts, setAlerts] = useState(() => loadFromStorage('alerts', DEMO_ALERTS));
   const [correctiveActions, setCorrectiveActions] = useState(() => loadFromStorage('correctiveActions', DEMO_CORRECTIVE_ACTIONS));
   const [auditTrail, setAuditTrail] = useState(() => loadFromStorage('auditTrail', DEMO_AUDIT_TRAIL));
+  const [sosAlerts, setSosAlerts] = useState(() => loadFromStorage('sos_alerts', DEMO_SOS_ALERTS));
 
   function loadFromStorage(key, fallback) {
     const saved = localStorage.getItem(STORAGE_KEY_PREFIX + key);
@@ -635,7 +637,36 @@ export function DataProvider({ children }) {
     localStorage.setItem(STORAGE_KEY_PREFIX + 'alerts', JSON.stringify(alerts));
     localStorage.setItem(STORAGE_KEY_PREFIX + 'correctiveActions', JSON.stringify(correctiveActions));
     localStorage.setItem(STORAGE_KEY_PREFIX + 'auditTrail', JSON.stringify(auditTrail));
-  }, [mines, workers, certificates, inspections, violations, alerts, correctiveActions, auditTrail]);
+    localStorage.setItem(STORAGE_KEY_PREFIX + 'sos_alerts', JSON.stringify(sosAlerts));
+  }, [mines, workers, certificates, inspections, violations, alerts, correctiveActions, auditTrail, sosAlerts]);
+
+  // BroadcastChannel for instant real-time sync across tabs/windows
+  useEffect(() => {
+    let bc;
+    if ('BroadcastChannel' in window) {
+      bc = new BroadcastChannel('mineguard_sos_channel');
+      bc.onmessage = (event) => {
+        if (event.data && event.data.type === 'SOS_UPDATED' && Array.isArray(event.data.sosAlerts)) {
+          setSosAlerts(event.data.sosAlerts);
+        }
+      };
+    }
+    return () => {
+      if (bc) bc.close();
+    };
+  }, []);
+
+  const broadcastSOSUpdate = (updatedList) => {
+    if ('BroadcastChannel' in window) {
+      try {
+        const bc = new BroadcastChannel('mineguard_sos_channel');
+        bc.postMessage({ type: 'SOS_UPDATED', sosAlerts: updatedList });
+        bc.close();
+      } catch (e) {
+        console.warn('BroadcastChannel error:', e);
+      }
+    }
+  };
 
   // Listen for storage events to synchronize data across multiple tabs/windows in real time
   useEffect(() => {
@@ -653,6 +684,7 @@ export function DataProvider({ children }) {
             if (key === 'alerts') setAlerts(parsed);
             if (key === 'correctiveActions') setCorrectiveActions(parsed);
             if (key === 'auditTrail') setAuditTrail(parsed);
+            if (key === 'sos_alerts') setSosAlerts(parsed);
           } catch (err) {
             console.error('Storage sync error:', err);
           }
@@ -1317,6 +1349,89 @@ export function DataProvider({ children }) {
     saveAuditLogToSupabase(newEntry);
   };
 
+  // Send Emergency SOS Alert
+  const sendSOSAlert = ({ inspectorName, inspectorId, mineName, mineId }) => {
+    const timestampStr = new Date().toISOString().replace('T', ' ').slice(0, 19);
+    const newSos = {
+      alertId: `SOS-${Date.now().toString().slice(-6)}`,
+      inspectorName: inspectorName || 'Inspector',
+      inspectorId: inspectorId || 'INS-001',
+      mineName: mineName || 'Demo Mine Alpha',
+      mineId: mineId || 'MINE-01',
+      timestamp: timestampStr,
+      status: 'ACTIVE',
+      alertType: 'SOS',
+      acknowledgedBy: null,
+      acknowledgedTime: null
+    };
+
+    setSosAlerts(prev => {
+      const updated = [newSos, ...prev];
+      broadcastSOSUpdate(updated);
+      return updated;
+    });
+
+    // Also add high-priority alert and audit trail
+    const auditEntry = {
+      auditId: `AUD-${Date.now().toString().slice(-6)}`,
+      timestamp: timestampStr,
+      actor: `${newSos.inspectorName} (${newSos.inspectorId})`,
+      role: 'Inspector',
+      action: 'EMERGENCY_SOS_SENT',
+      details: `🚨 EMERGENCY SOS ALERT dispatched for ${newSos.mineName} by ${newSos.inspectorName}. Immediate Mine Officer attention required.`,
+      mineId: newSos.mineId
+    };
+
+    setAuditTrail(prev => [auditEntry, ...prev]);
+
+    const sysAlert = {
+      alertId: `ALT-${Date.now().toString().slice(-6)}`,
+      mineId: newSos.mineId,
+      title: `🚨 EMERGENCY SOS: ${newSos.mineName}`,
+      message: `Emergency SOS triggered by ${newSos.inspectorName} (${newSos.inspectorId}) at ${newSos.mineName}. Immediate action required!`,
+      severity: 'CRITICAL',
+      timestamp: timestampStr,
+      isRead: false,
+      targetRoles: ['officer', 'management', 'authority']
+    };
+    setAlerts(prev => [sysAlert, ...prev]);
+
+    return newSos;
+  };
+
+  // Acknowledge Emergency SOS Alert
+  const acknowledgeSOSAlert = (alertId, acknowledgedBy) => {
+    const ackTime = new Date().toISOString().replace('T', ' ').slice(0, 19);
+    setSosAlerts(prev => {
+      const updated = prev.map(item => {
+        if (item.alertId === alertId) {
+          return {
+            ...item,
+            status: 'ACKNOWLEDGED',
+            acknowledgedBy: acknowledgedBy || 'Mine Officer',
+            acknowledgedTime: ackTime
+          };
+        }
+        return item;
+      });
+      broadcastSOSUpdate(updated);
+      return updated;
+    });
+
+    // Add to audit trail
+    const auditEntry = {
+      auditId: `AUD-${Date.now().toString().slice(-6)}`,
+      timestamp: ackTime,
+      actor: acknowledgedBy || 'Mine Officer',
+      role: 'Officer',
+      action: 'EMERGENCY_SOS_ACKNOWLEDGED',
+      details: `✅ EMERGENCY SOS ${alertId} acknowledged by ${acknowledgedBy || 'Mine Officer'}.`,
+      mineId: 'MINE-01'
+    };
+
+    setAuditTrail(prev => [auditEntry, ...prev]);
+  };
+
   // Mark Alert as Read
   const markAlertRead = (alertId) => {
     setAlerts(prev => {
@@ -1337,6 +1452,7 @@ export function DataProvider({ children }) {
     localStorage.removeItem(STORAGE_KEY_PREFIX + 'alerts');
     localStorage.removeItem(STORAGE_KEY_PREFIX + 'correctiveActions');
     localStorage.removeItem(STORAGE_KEY_PREFIX + 'auditTrail');
+    localStorage.removeItem(STORAGE_KEY_PREFIX + 'sos_alerts');
 
     setMines(DEMO_MINES);
     setWorkers(DEMO_WORKERS);
@@ -1346,6 +1462,7 @@ export function DataProvider({ children }) {
     setAlerts(DEMO_ALERTS);
     setCorrectiveActions(DEMO_CORRECTIVE_ACTIONS);
     setAuditTrail(DEMO_AUDIT_TRAIL);
+    setSosAlerts(DEMO_SOS_ALERTS);
   };
 
   return (
@@ -1356,9 +1473,12 @@ export function DataProvider({ children }) {
       inspections,
       violations,
       alerts,
+      sosAlerts,
       correctiveActions,
       auditTrail,
       equipment: [],
+      sendSOSAlert,
+      acknowledgeSOSAlert,
       createInspection,
       reportViolation,
       createCorrectiveAction,

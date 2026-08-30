@@ -1889,3 +1889,18 @@ export const DEMO_AUDIT_TRAIL = [
     "mineId": "MINE-01"
   }
 ];
+
+export const DEMO_SOS_ALERTS = [
+  {
+    alertId: "SOS-2026-001",
+    inspectorName: "Anita Kulkarni",
+    inspectorId: "INS-001",
+    mineName: "Demo Mine Alpha",
+    mineId: "MINE-01",
+    timestamp: "2026-08-28 16:45:12",
+    status: "ACKNOWLEDGED",
+    alertType: "SOS",
+    acknowledgedBy: "Vikram Singh (Officer)",
+    acknowledgedTime: "2026-08-28 16:46:05"
+  }
+];

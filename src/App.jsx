@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider, useData } from './context/DataContext';
 import LoginPage from './components/auth/LoginPage';
@@ -18,6 +19,11 @@ import OfficerDashboard from './components/officer/OfficerDashboard';
 import WorkerRegistry from './components/officer/WorkerRegistry';
 import CertificateManager from './components/officer/CertificateManager';
 import CorrectiveActionManager from './components/officer/CorrectiveActionManager';
+import SOSHistoryView from './components/officer/SOSHistoryView';
+
+// Common Emergency Components
+import SOSButtonModal from './components/common/SOSButtonModal';
+import SOSEmergencyOverlay from './components/common/SOSEmergencyOverlay';
 
 // Management Views
 import ManagementDashboard from './components/management/ManagementDashboard';
@@ -35,10 +41,10 @@ function MainApp() {
   const { mines } = useData();
   // Role Authorization Guard Map
   const roleAllowedTabs = {
-    INSPECTOR: ['dashboard', 'inspections', 'verify-cert', 'violations', 'verifications'],
-    OFFICER: ['dashboard', 'workers', 'certificates', 'actions', 'violations', 'inspections-log'],
-    MANAGEMENT: ['dashboard', 'mines-compare', 'risk-analytics', 'compliance-reports', 'audit-log'],
-    AUTHORITY: ['dashboard', 'high-risk', 'directives', 'audit-log', 'compliance-reports']
+    INSPECTOR: ['dashboard', 'inspections', 'verify-cert', 'violations', 'verifications', 'sos-history'],
+    OFFICER: ['dashboard', 'workers', 'certificates', 'actions', 'violations', 'inspections-log', 'sos-history'],
+    MANAGEMENT: ['dashboard', 'mines-compare', 'risk-analytics', 'compliance-reports', 'audit-log', 'sos-history'],
+    AUTHORITY: ['dashboard', 'high-risk', 'directives', 'audit-log', 'compliance-reports', 'sos-history']
   };
 
   // Helper to parse route from URL hash
@@ -155,6 +161,8 @@ function MainApp() {
           return <ViolationsListView />;
         case 'verifications':
           return <VerificationList />;
+        case 'sos-history':
+          return <SOSHistoryView />;
         default:
           return <InspectorDashboard onNavigate={(tab) => setCurrentTab(tab)} />;
       }
@@ -174,6 +182,8 @@ function MainApp() {
           return <ViolationsListView />;
         case 'inspections-log':
           return <AuditTrailView />;
+        case 'sos-history':
+          return <SOSHistoryView />;
         default:
           return <OfficerDashboard onNavigate={(tab) => setCurrentTab(tab)} />;
       }
@@ -191,6 +201,8 @@ function MainApp() {
           return <ExecutiveReportView />;
         case 'audit-log':
           return <AuditTrailView />;
+        case 'sos-history':
+          return <SOSHistoryView />;
         default:
           return <ManagementDashboard onNavigate={(tab) => setCurrentTab(tab)} onSelectMine={(m) => setSelectedAuditMine(m)} />;
       }
@@ -208,6 +220,8 @@ function MainApp() {
           return <AuditTrailView />;
         case 'compliance-reports':
           return <ExecutiveReportView />;
+        case 'sos-history':
+          return <SOSHistoryView />;
         default:
           return <RegulatoryDashboard onNavigate={(tab) => setCurrentTab(tab)} />;
       }
@@ -252,16 +266,24 @@ function MainApp() {
           mine={selectedAuditMine}
         />
       )}
+
+      {/* Floating SOS Trigger Button (Inspectors) */}
+      <SOSButtonModal />
+
+      {/* Full Screen SOS Emergency Overlay (Officers/Management/Authority) */}
+      <SOSEmergencyOverlay />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <DataProvider>
-        <MainApp />
-      </DataProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <DataProvider>
+          <MainApp />
+        </DataProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
