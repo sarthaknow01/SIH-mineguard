@@ -15,24 +15,26 @@ export default function SOSButtonModal() {
     return null;
   }
 
-  const handleConfirmSOS = () => {
+  const handleConfirmSOS = async () => {
     setIsSending(true);
-    setTimeout(() => {
-      sendSOSAlert({
+    try {
+      await sendSOSAlert({
         inspectorName: currentUser.name || 'Anita Kulkarni',
         inspectorId: currentUser.badge || 'INS-001',
         mineName: currentUser.mineName || 'Demo Mine Alpha',
         mineId: currentUser.mineId || 'MINE-01'
       });
+    } catch (err) {
+      console.error('Error sending SOS from modal:', err);
+    } finally {
       setIsSending(false);
       setIsOpen(false);
       setToastMessage('Emergency SOS sent successfully.');
 
-      // Hide toast after 4 seconds
       setTimeout(() => {
         setToastMessage(null);
       }, 4000);
-    }, 400);
+    }
   };
 
   return (

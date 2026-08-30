@@ -1532,7 +1532,7 @@ export function DataProvider({ children }) {
   };
 
   // Send Emergency SOS Alert via Supabase Realtime & Resilient Channels
-  const sendSOSAlert = ({ inspectorName, inspectorId, mineName, mineId }) => {
+  const sendSOSAlert = async ({ inspectorName, inspectorId, mineName, mineId }) => {
     const timestampStr = new Date().toISOString().replace('T', ' ').slice(0, 19);
     const newSos = {
       alertId: `SOS-${Date.now().toString().slice(-6)}`,
@@ -1567,7 +1567,8 @@ export function DataProvider({ children }) {
       }
     }
 
-    saveSosAlertToSupabase(newSos);
+    // Await database insert
+    await saveSosAlertToSupabase(newSos);
 
     // Also add high-priority alert and audit trail
     const auditEntry = {
