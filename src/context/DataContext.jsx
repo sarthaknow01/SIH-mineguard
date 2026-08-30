@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import {
   DEMO_MINES,
@@ -698,6 +698,7 @@ export function DataProvider({ children }) {
   const [correctiveActions, setCorrectiveActions] = useState(() => loadFromStorage('correctiveActions', DEMO_CORRECTIVE_ACTIONS));
   const [auditTrail, setAuditTrail] = useState(() => loadFromStorage('auditTrail', DEMO_AUDIT_TRAIL));
   const [sosAlerts, setSosAlerts] = useState(() => loadFromStorage('sos_alerts', []));
+  const sosRealtimeChannelRef = useRef(null);
 
   function loadFromStorage(key, fallback) {
     const saved = localStorage.getItem(STORAGE_KEY_PREFIX + key);
@@ -749,11 +750,10 @@ export function DataProvider({ children }) {
     }
   };
 
-  // Subscribe to Supabase Realtime changes on 'sos_alerts' table
+  // Subscribe to Supabase Realtime changes & Broadcast events on 'mineguard_global_sos_channel'
   useEffect(() => {
     async function fetchInitialSosAlerts() {
       try {
-        console.log('🔍 [Supabase SOS] Fetching initial sos_alerts from Supabase table...');
         const { data, error } = await supabase
           .from('sos_alerts')
           .select('*')
@@ -763,9 +763,7 @@ export function DataProvider({ children }) {
           console.warn('⚠️ [Supabase SOS] Fetch initial sos_alerts notice:', error.message || error);
         } else if (data && data.length > 0) {
           const mapped = data.map(mapSupabaseToSosAlert).filter(Boolean);
-          console.log(`✅ [Supabase SOS] Fetch SUCCESS: Loaded ${mapped.length} records from Supabase DB:`, mapped);
           setSosAlerts(prev => {
-            // Merge Supabase records with local state
             const map = new Map();
             mapped.forEach(item => map.set(item.alertId, item));
             prev.forEach(item => {
@@ -781,17 +779,23 @@ export function DataProvider({ children }) {
 
     fetchInitialSosAlerts();
 
-    const sosChannel = supabase
-      .channel('sos_alerts_channel')
+    const channel = supabase.channel('mineguard_global_sos_channel', {
+      config: {
+        broadcast: { self: true }
+      }
+    });
+
+    sosRealtimeChannelRef.current = channel;
+
+    channel
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'sos_alerts' },
         (payload) => {
-          console.log(`🔔 [Supabase Realtime] Event Received [${payload.eventType}]:`, payload);
+          console.log(`🔔 [Supabase Postgres Realtime] Event Received [${payload.eventType}]:`, payload);
           if (payload.eventType === 'INSERT' && payload.new) {
             const newAlert = mapSupabaseToSosAlert(payload.new);
             if (newAlert) {
-              console.log('🚨 [Supabase Realtime] New SOS record inserted:', newAlert);
               setSosAlerts((prev) => {
                 const updated = prev.some((a) => a.alertId === newAlert.alertId)
                   ? prev.map((a) => (a.alertId === newAlert.alertId ? newAlert : a))
@@ -803,26 +807,48 @@ export function DataProvider({ children }) {
           } else if (payload.eventType === 'UPDATE' && payload.new) {
             const updatedAlert = mapSupabaseToSosAlert(payload.new);
             if (updatedAlert) {
-              console.log('✅ [Supabase Realtime] SOS record updated:', updatedAlert);
               setSosAlerts((prev) => {
                 const updated = prev.map((a) => (a.alertId === updatedAlert.alertId ? updatedAlert : a));
                 localStorage.setItem(STORAGE_KEY_PREFIX + 'sos_alerts', JSON.stringify(updated));
                 return updated;
               });
             }
-          } else if (payload.eventType === 'DELETE' && payload.old) {
-            const deletedId = payload.old.alert_id || payload.old.id;
-            console.log('🗑️ [Supabase Realtime] SOS record deleted:', deletedId);
-            setSosAlerts((prev) => prev.filter((a) => a.alertId !== deletedId));
           }
         }
       )
+      .on('broadcast', { event: 'sos_trigger' }, ({ payload }) => {
+        console.log('🚨 [Supabase Realtime Broadcast] SOS received from remote device:', payload);
+        if (payload && payload.alertId) {
+          setSosAlerts((prev) => {
+            if (prev.some((a) => a.alertId === payload.alertId)) return prev;
+            const updated = [payload, ...prev];
+            localStorage.setItem(STORAGE_KEY_PREFIX + 'sos_alerts', JSON.stringify(updated));
+            return updated;
+          });
+        }
+      })
+      .on('broadcast', { event: 'sos_acknowledge' }, ({ payload }) => {
+        console.log('✅ [Supabase Realtime Broadcast] Acknowledgment received from remote device:', payload);
+        if (payload && payload.alertId) {
+          setSosAlerts((prev) => {
+            const updated = prev.map((a) => (a.alertId === payload.alertId ? { ...a, ...payload } : a));
+            localStorage.setItem(STORAGE_KEY_PREFIX + 'sos_alerts', JSON.stringify(updated));
+            return updated;
+          });
+        }
+      })
       .subscribe((status, err) => {
-        console.log(`📡 [Supabase Realtime Status] Subscription status for sos_alerts: ${status}`, err || '');
+        console.log(`📡 [Supabase Realtime Status] Channel status: ${status}`, err || '');
       });
 
+    const pollInterval = setInterval(() => {
+      fetchInitialSosAlerts();
+    }, 4000);
+
     return () => {
-      supabase.removeChannel(sosChannel);
+      clearInterval(pollInterval);
+      supabase.removeChannel(channel);
+      sosRealtimeChannelRef.current = null;
     };
   }, []);
 
@@ -1528,6 +1554,21 @@ export function DataProvider({ children }) {
     setSosAlerts(updated);
     localStorage.setItem(STORAGE_KEY_PREFIX + 'sos_alerts', JSON.stringify(updated));
     broadcastSOSUpdate(updated);
+
+    // Send Supabase Realtime Broadcast message to ALL connected devices worldwide
+    if (sosRealtimeChannelRef.current) {
+      try {
+        sosRealtimeChannelRef.current.send({
+          type: 'broadcast',
+          event: 'sos_trigger',
+          payload: newSos
+        });
+        console.log('📡 [Supabase Realtime Broadcast] SOS broadcast sent to remote devices.');
+      } catch (e) {
+        console.warn('Supabase Realtime broadcast send error:', e);
+      }
+    }
+
     saveSosAlertToSupabase(newSos);
 
     // Also add high-priority alert and audit trail
@@ -1563,14 +1604,19 @@ export function DataProvider({ children }) {
   // Acknowledge Emergency SOS Alert via Supabase Realtime & Resilient Channels
   const acknowledgeSOSAlert = (alertId, acknowledgedBy) => {
     const ackTime = new Date().toISOString().replace('T', ' ').slice(0, 19);
+    const ackPayload = {
+      alertId,
+      status: 'ACKNOWLEDGED',
+      acknowledgedBy: acknowledgedBy || 'Mine Officer',
+      acknowledgedAt: ackTime,
+      acknowledgedTime: ackTime
+    };
+
     const updated = sosAlerts.map(item => {
       if (item.alertId === alertId) {
         return {
           ...item,
-          status: 'ACKNOWLEDGED',
-          acknowledgedBy: acknowledgedBy || 'Mine Officer',
-          acknowledgedAt: ackTime,
-          acknowledgedTime: ackTime
+          ...ackPayload
         };
       }
       return item;
@@ -1579,6 +1625,21 @@ export function DataProvider({ children }) {
     setSosAlerts(updated);
     localStorage.setItem(STORAGE_KEY_PREFIX + 'sos_alerts', JSON.stringify(updated));
     broadcastSOSUpdate(updated);
+
+    // Send Supabase Realtime Broadcast message to ALL connected devices worldwide
+    if (sosRealtimeChannelRef.current) {
+      try {
+        sosRealtimeChannelRef.current.send({
+          type: 'broadcast',
+          event: 'sos_acknowledge',
+          payload: ackPayload
+        });
+        console.log('📡 [Supabase Realtime Broadcast] Acknowledgment broadcast sent to remote devices.');
+      } catch (e) {
+        console.warn('Supabase Realtime broadcast acknowledge error:', e);
+      }
+    }
+
     updateSosAlertInSupabase(alertId, acknowledgedBy, ackTime);
 
     // Add to audit trail
