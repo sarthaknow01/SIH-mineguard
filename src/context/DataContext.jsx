@@ -759,16 +759,10 @@ export function DataProvider({ children }) {
 
         if (error) {
           console.warn('⚠️ [Supabase SOS] Fetch initial sos_alerts notice:', error.message || error);
-        } else if (data && data.length > 0) {
+        } else if (data) {
           const mapped = data.map(mapSupabaseToSosAlert).filter(Boolean);
-          setSosAlerts(prev => {
-            const map = new Map();
-            mapped.forEach(item => map.set(item.alertId, item));
-            prev.forEach(item => {
-              if (!map.has(item.alertId)) map.set(item.alertId, item);
-            });
-            return Array.from(map.values());
-          });
+          setSosAlerts(mapped);
+          localStorage.setItem(STORAGE_KEY_PREFIX + 'sos_alerts', JSON.stringify(mapped));
         }
       } catch (err) {
         console.warn('⚠️ [Supabase SOS] Exception fetching initial sos_alerts:', err);

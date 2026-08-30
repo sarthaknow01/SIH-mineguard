@@ -9,7 +9,8 @@ export default function SOSEmergencyOverlay() {
   const { sosAlerts, acknowledgeSOSAlert } = useData();
 
   // Security guard: Full-screen emergency popup & alarm sound strictly for Mine Officer
-  const isMineOfficer = currentUser && currentUser.role === 'OFFICER';
+  const userRole = (currentUser?.role || '').toUpperCase();
+  const isMineOfficer = userRole === 'OFFICER' || userRole === 'MINE_OFFICER';
 
   // Find active SOS alerts
   const activeSos = Array.isArray(sosAlerts) ? sosAlerts.find(item => item.status === 'ACTIVE') : null;
