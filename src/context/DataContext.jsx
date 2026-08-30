@@ -637,7 +637,6 @@ function mapSosAlertToSupabaseRow(sos) {
     status: sos.status || 'ACTIVE',
     acknowledged_by: sos.acknowledgedBy || null,
     acknowledged_at: sos.acknowledgedAt || sos.acknowledgedTime || null,
-    acknowledged_time: sos.acknowledgedTime || sos.acknowledgedAt || null,
   };
 }
 
@@ -645,14 +644,14 @@ async function saveSosAlertToSupabase(sos) {
   if (!sos || !sos.alertId) return;
   try {
     const row = mapSosAlertToSupabaseRow(sos);
-    console.log('[Supabase SOS] Inserting row into sos_alerts:', row);
+    console.log('[Supabase SOS] Inserting row into sos_alerts table:', row);
     const { data, error } = await supabase
       .from('sos_alerts')
-      .upsert(row, { onConflict: 'alert_id' })
+      .insert(row)
       .select();
 
     if (error) {
-      console.error('❌ [Supabase SOS] Insert FAILURE:', error);
+      console.error('❌ [Supabase SOS] Insert FAILURE:', error.message || error);
     } else {
       console.log('✅ [Supabase SOS] Insert SUCCESS:', data);
     }
@@ -665,20 +664,19 @@ async function saveSosAlertToSupabase(sos) {
 async function updateSosAlertInSupabase(alertId, acknowledgedBy, acknowledgedTime) {
   if (!alertId) return;
   try {
-    console.log(`[Supabase SOS] Updating alert ${alertId} in sos_alerts to ACKNOWLEDGED...`);
+    console.log(`[Supabase SOS] Updating alert ${alertId} in sos_alerts table to ACKNOWLEDGED...`);
     const { data, error } = await supabase
       .from('sos_alerts')
       .update({
         status: 'ACKNOWLEDGED',
-        acknowledged_by: acknowledgedBy,
-        acknowledged_at: acknowledgedTime,
-        acknowledged_time: acknowledgedTime
+        acknowledged_by: acknowledgedBy || 'Mine Officer',
+        acknowledged_at: acknowledgedTime || new Date().toISOString()
       })
       .eq('alert_id', alertId)
       .select();
 
     if (error) {
-      console.error('❌ [Supabase SOS] Update FAILURE:', error);
+      console.error('❌ [Supabase SOS] Update FAILURE:', error.message || error);
     } else {
       console.log('✅ [Supabase SOS] Update SUCCESS:', data);
     }
