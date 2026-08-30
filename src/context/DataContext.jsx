@@ -62,11 +62,11 @@ async function saveMinesToSupabase(minesArr) {
     const rows = minesArr.map(mapMineToSupabaseRow).filter(Boolean);
     const { data, error } = await supabase
       .from('mines')
-      .upsert(rows, { onConflict: 'mine_id' })
+      .insert(rows)
       .select();
 
     if (error) {
-      console.error('Supabase mines upsert error:', error);
+      console.error('Supabase mines insert error:', error);
     }
     return data;
   } catch (err) {
@@ -116,11 +116,11 @@ async function saveWorkersToSupabase(workersArr) {
     const rows = workersArr.map(mapWorkerToSupabaseRow).filter(Boolean);
     const { data, error } = await supabase
       .from('workers')
-      .upsert(rows, { onConflict: 'worker_id' })
+      .insert(rows)
       .select();
 
     if (error) {
-      console.error('Supabase workers upsert error:', error);
+      console.error('Supabase workers insert error:', error);
     }
     return data;
   } catch (err) {
@@ -170,11 +170,11 @@ async function saveCertificatesToSupabase(certsArr) {
     const rows = certsArr.map(mapCertificateToSupabaseRow).filter(Boolean);
     const { data, error } = await supabase
       .from('certificates')
-      .upsert(rows, { onConflict: 'certificate_id' })
+      .insert(rows)
       .select();
 
     if (error) {
-      console.error('Supabase certificates upsert error:', error);
+      console.error('Supabase certificates insert error:', error);
     }
     return data;
   } catch (err) {
@@ -188,11 +188,11 @@ async function saveCertificateToSupabase(c) {
     const row = mapCertificateToSupabaseRow(c);
     const { data, error } = await supabase
       .from('certificates')
-      .upsert(row, { onConflict: 'certificate_id' })
+      .insert(row)
       .select();
 
     if (error) {
-      console.error('Supabase single certificate upsert error:', error);
+      console.error('Supabase single certificate insert error:', error);
     }
     return data;
   } catch (err) {
@@ -241,11 +241,11 @@ async function saveInspectionsToSupabase(inspsArr) {
     const rows = inspsArr.map(mapInspectionToSupabaseRow).filter(Boolean);
     const { data, error } = await supabase
       .from('inspections')
-      .upsert(rows, { onConflict: 'inspection_id' })
+      .insert(rows)
       .select();
 
     if (error) {
-      console.error('Supabase inspections upsert error:', error);
+      console.error('Supabase inspections insert error:', error);
     }
     return data;
   } catch (err) {
@@ -259,11 +259,11 @@ async function saveInspectionToSupabase(i) {
     const row = mapInspectionToSupabaseRow(i);
     const { data, error } = await supabase
       .from('inspections')
-      .upsert(row, { onConflict: 'inspection_id' })
+      .insert(row)
       .select();
 
     if (error) {
-      console.error('Supabase single inspection upsert error:', error);
+      console.error('Supabase single inspection insert error:', error);
     }
     return data;
   } catch (err) {
@@ -301,7 +301,7 @@ function mapSupabaseToViolation(row) {
 
 async function saveViolationToSupabase(v) {
   if (!v || !v.violationId) return;
-  console.log('SUPABASE SAVE START:', v);
+  console.log('SUPABASE SAVE VIOLATION START:', v);
   try {
     const dbRow = {
       violation_id: v.violationId,
@@ -327,14 +327,14 @@ async function saveViolationToSupabase(v) {
       verification_notes: v.verificationNotes || null,
     };
 
-    console.log('SUPABASE UPSERT PAYLOAD:', dbRow);
+    console.log('SUPABASE INSERT VIOLATION PAYLOAD:', dbRow);
 
     const { data, error } = await supabase
       .from('violations')
-      .upsert(dbRow, { onConflict: 'violation_id' })
+      .insert(dbRow)
       .select();
 
-    console.log('SUPABASE UPSERT RESULT:', { data, error });
+    console.log('SUPABASE INSERT VIOLATION RESULT:', { data, error });
 
     if (error) {
       console.error('SUPABASE VIOLATION ERROR FULL:', {
@@ -382,11 +382,11 @@ async function saveViolationsToSupabase(vArr) {
     const rows = vArr.map(mapViolationToSupabaseRow).filter(Boolean);
     const { data, error } = await supabase
       .from('violations')
-      .upsert(rows, { onConflict: 'violation_id' })
+      .insert(rows)
       .select();
 
     if (error) {
-      console.error('Supabase batch violations upsert error:', error);
+      console.error('Supabase batch violations insert error:', error);
     }
     return data;
   } catch (err) {
@@ -438,11 +438,11 @@ async function saveCorrectiveActionsToSupabase(actionsArr) {
     const rows = actionsArr.map(mapCorrectiveActionToSupabaseRow).filter(Boolean);
     const { data, error } = await supabase
       .from('corrective_actions')
-      .upsert(rows, { onConflict: 'action_id' })
+      .insert(rows)
       .select();
 
     if (error) {
-      console.error('Supabase corrective_actions upsert error:', error);
+      console.error('Supabase corrective_actions insert error:', error);
     }
     return data;
   } catch (err) {
@@ -456,11 +456,11 @@ async function saveCorrectiveActionToSupabase(ca) {
     const row = mapCorrectiveActionToSupabaseRow(ca);
     const { data, error } = await supabase
       .from('corrective_actions')
-      .upsert(row, { onConflict: 'action_id' })
+      .insert(row)
       .select();
 
     if (error) {
-      console.error('Supabase single corrective_action upsert error:', error);
+      console.error('Supabase single corrective_action insert error:', error);
     }
     return data;
   } catch (err) {
@@ -516,11 +516,11 @@ async function saveAlertsToSupabase(alertsArr) {
     const rows = alertsArr.map(mapAlertToSupabaseRow).filter(Boolean);
     const { data, error } = await supabase
       .from('alerts')
-      .upsert(rows, { onConflict: 'alert_id' })
+      .insert(rows)
       .select();
 
     if (error) {
-      console.error('Supabase alerts upsert error:', error);
+      console.error('Supabase alerts insert error:', error);
     }
     return data;
   } catch (err) {
@@ -534,11 +534,11 @@ async function saveAlertToSupabase(a) {
     const row = mapAlertToSupabaseRow(a);
     const { data, error } = await supabase
       .from('alerts')
-      .upsert(row, { onConflict: 'alert_id' })
+      .insert(row)
       .select();
 
     if (error) {
-      console.error('Supabase single alert upsert error:', error);
+      console.error('Supabase single alert insert error:', error);
     }
     return data;
   } catch (err) {
@@ -578,11 +578,11 @@ async function saveAuditLogsToSupabase(logsArr) {
     const rows = logsArr.map(mapAuditLogToSupabaseRow).filter(Boolean);
     const { data, error } = await supabase
       .from('audit_trail')
-      .upsert(rows, { onConflict: 'audit_id' })
+      .insert(rows)
       .select();
 
     if (error) {
-      console.error('Supabase audit_trail upsert error:', error);
+      console.error('Supabase audit_trail insert error:', error);
     }
     return data;
   } catch (err) {
@@ -596,11 +596,11 @@ async function saveAuditLogToSupabase(a) {
     const row = mapAuditLogToSupabaseRow(a);
     const { data, error } = await supabase
       .from('audit_trail')
-      .upsert(row, { onConflict: 'audit_id' })
+      .insert(row)
       .select();
 
     if (error) {
-      console.error('Supabase single audit_log upsert error:', error);
+      console.error('Supabase single audit_log insert error:', error);
     }
     return data;
   } catch (err) {
@@ -835,13 +835,96 @@ export function DataProvider({ children }) {
 
     const pollInterval = setInterval(() => {
       fetchInitialSosAlerts();
-    }, 4000);
+    }, 2000);
 
     return () => {
       clearInterval(pollInterval);
       supabase.removeChannel(channel);
       sosRealtimeChannelRef.current = null;
     };
+  }, []);
+
+  // Live Supabase DB Polling & Sync for Violations, Inspections, Certificates, Actions, Alerts across devices
+  useEffect(() => {
+    async function syncAllSupabaseTables() {
+      try {
+        // Violations
+        const { data: vData } = await supabase.from('violations').select('*').order('reported_date', { ascending: false });
+        if (vData && vData.length > 0) {
+          const mappedV = vData.map(mapSupabaseToViolation).filter(Boolean);
+          setViolations(prev => {
+            const map = new Map();
+            mappedV.forEach(item => map.set(item.violationId, item));
+            prev.forEach(item => { if (!map.has(item.violationId)) map.set(item.violationId, item); });
+            const merged = Array.from(map.values());
+            localStorage.setItem(STORAGE_KEY_PREFIX + 'violations', JSON.stringify(merged));
+            return merged;
+          });
+        }
+
+        // Inspections
+        const { data: iData } = await supabase.from('inspections').select('*').order('date', { ascending: false });
+        if (iData && iData.length > 0) {
+          const mappedI = iData.map(mapSupabaseToInspection).filter(Boolean);
+          setInspections(prev => {
+            const map = new Map();
+            mappedI.forEach(item => map.set(item.inspectionId, item));
+            prev.forEach(item => { if (!map.has(item.inspectionId)) map.set(item.inspectionId, item); });
+            const merged = Array.from(map.values());
+            localStorage.setItem(STORAGE_KEY_PREFIX + 'inspections', JSON.stringify(merged));
+            return merged;
+          });
+        }
+
+        // Certificates
+        const { data: cData } = await supabase.from('certificates').select('*');
+        if (cData && cData.length > 0) {
+          const mappedC = cData.map(mapSupabaseToCertificate).filter(Boolean);
+          setCertificates(prev => {
+            const map = new Map();
+            mappedC.forEach(item => map.set(item.certificateId, item));
+            prev.forEach(item => { if (!map.has(item.certificateId)) map.set(item.certificateId, item); });
+            const merged = Array.from(map.values());
+            localStorage.setItem(STORAGE_KEY_PREFIX + 'certificates', JSON.stringify(merged));
+            return merged;
+          });
+        }
+
+        // Corrective Actions
+        const { data: caData } = await supabase.from('corrective_actions').select('*').order('created_date', { ascending: false });
+        if (caData && caData.length > 0) {
+          const mappedCA = caData.map(mapSupabaseToCorrectiveAction).filter(Boolean);
+          setCorrectiveActions(prev => {
+            const map = new Map();
+            mappedCA.forEach(item => map.set(item.actionId, item));
+            prev.forEach(item => { if (!map.has(item.actionId)) map.set(item.actionId, item); });
+            const merged = Array.from(map.values());
+            localStorage.setItem(STORAGE_KEY_PREFIX + 'correctiveActions', JSON.stringify(merged));
+            return merged;
+          });
+        }
+
+        // System Alerts
+        const { data: aData } = await supabase.from('alerts').select('*').order('created_date', { ascending: false });
+        if (aData && aData.length > 0) {
+          const mappedA = aData.map(mapSupabaseToAlert).filter(Boolean);
+          setAlerts(prev => {
+            const map = new Map();
+            mappedA.forEach(item => map.set(item.alertId, item));
+            prev.forEach(item => { if (!map.has(item.alertId)) map.set(item.alertId, item); });
+            const merged = Array.from(map.values());
+            localStorage.setItem(STORAGE_KEY_PREFIX + 'alerts', JSON.stringify(merged));
+            return merged;
+          });
+        }
+      } catch (err) {
+        console.warn('Supabase DB multi-table poll error:', err);
+      }
+    }
+
+    syncAllSupabaseTables();
+    const interval = setInterval(syncAllSupabaseTables, 2000);
+    return () => clearInterval(interval);
   }, []);
 
   // Listen for storage events to synchronize data across multiple tabs/windows in real time
