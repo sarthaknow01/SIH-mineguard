@@ -175,7 +175,7 @@ export default function SOSHistoryView() {
                       {item.status === 'ACKNOWLEDGED' ? (
                         <div className="space-y-0.5">
                           <p className="text-emerald-300 font-semibold">{item.acknowledgedBy || 'Mine Officer'}</p>
-                          <p className="text-[10px] text-slate-400 font-mono">{item.acknowledgedTime}</p>
+                          <p className="text-[10px] text-slate-400 font-mono">{item.acknowledgedAt || item.acknowledgedTime}</p>
                         </div>
                       ) : (
                         <span className="text-slate-500 italic">Pending Response...</span>

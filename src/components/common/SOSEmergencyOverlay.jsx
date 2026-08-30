@@ -8,15 +8,15 @@ export default function SOSEmergencyOverlay() {
   const { currentUser } = useAuth();
   const { sosAlerts, acknowledgeSOSAlert } = useData();
 
-  // Security guard: Only Officer / Admin / Management / Authority can receive & acknowledge SOS
-  const isOfficerOrAdmin = currentUser && ['OFFICER', 'MANAGEMENT', 'AUTHORITY'].includes(currentUser.role);
+  // Security guard: Full-screen emergency popup & alarm sound strictly for Mine Officer
+  const isMineOfficer = currentUser && currentUser.role === 'OFFICER';
 
   // Find active SOS alerts
   const activeSos = Array.isArray(sosAlerts) ? sosAlerts.find(item => item.status === 'ACTIVE') : null;
 
   // Control repeating emergency audio sound playback
   useEffect(() => {
-    if (isOfficerOrAdmin && activeSos) {
+    if (isMineOfficer && activeSos) {
       sosAlarmSound.start();
     } else {
       sosAlarmSound.stop();
@@ -25,9 +25,9 @@ export default function SOSEmergencyOverlay() {
     return () => {
       sosAlarmSound.stop();
     };
-  }, [isOfficerOrAdmin, activeSos?.alertId]);
+  }, [isMineOfficer, activeSos?.alertId]);
 
-  if (!isOfficerOrAdmin || !activeSos) {
+  if (!isMineOfficer || !activeSos) {
     return null;
   }
 
